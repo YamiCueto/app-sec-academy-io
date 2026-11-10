@@ -1,0 +1,80 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="header-main">
+      <div class="rank-badge">{{ progressStore.rank() }}</div>
+      <h1 class="dashboard-title view-title">Panel de Aprendizaje</h1>
+      <p class="dashboard-subtitle">
+        Estudiante: <strong class="student-alias">{{ progressStore.alias() }}</strong>
+      </p>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn btn-danger-outline reset-progress-btn"
+        (click)="handleReset()"
+        aria-label="Restablecer progreso local"
+      >
+        Restablecer Progreso
+      </button>
+    </div>
+  </header>
+
+  <section class="stats-grid" aria-label="Métricas de progreso">
+    <article class="stat-card">
+      <span class="stat-label">Experiencia Acumulada</span>
+      <span class="stat-value stat-xp-value">{{ progressStore.totalXP() }} XP</span>
+      <span class="stat-hint">Calculada según actividades resueltas</span>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Lecciones Completadas</span>
+      <span class="stat-value stat-lessons-value">{{ progressStore.completedLessonsCount() }} / 49</span>
+      <span class="stat-hint">Currículo troncal previsto</span>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Progreso Curricular</span>
+      <span class="stat-value stat-percentage-value">{{ progressStore.completionPercentage() }}%</span>
+      <span class="stat-hint">Porcentaje ponderado global</span>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Laboratorios Aprobados</span>
+      <span class="stat-value stat-labs-value">{{ progressStore.completedLabsCount() }}</span>
+      <span class="stat-hint">Prácticas verificadas en sandbox</span>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Evaluaciones Aprobadas</span>
+      <span class="stat-value stat-quizzes-value">{{ progressStore.completedQuizzesCount() }}</span>
+      <span class="stat-hint">Knowledge Checks con &ge; 80%</span>
+    </article>
+  </section>
+
+  @if (progressStore.isEmpty()) {
+    <section class="empty-state-card" aria-label="Estado inicial">
+      <div class="empty-state-icon">📋</div>
+      <h2 class="empty-state-title">Aún no se registra actividad</h2>
+      <p class="empty-state-message">
+        No se han registrado lecciones, evaluaciones ni laboratorios completados en este navegador.
+        Tu progreso se persistirá automáticamente de forma local conforme avances en las rutas de aprendizaje.
+      </p>
+      <div class="empty-actions">
+        <a routerLink="/curriculum" class="btn btn-primary">Explorar Currículo</a>
+        <a [routerLink]="['/leccion', '1.1']" class="btn btn-secondary">Comenzar Lección 1.1</a>
+      </div>
+    </section>
+  } @else {
+    <section class="active-progress-card" aria-label="Detalle de avance">
+      <h2 class="section-title">Registro de Actividad</h2>
+      <div class="completed-lessons-list">
+        <span class="list-label">Lecciones registradas:</span>
+        <div class="tags-row">
+          @for (lessonId of progressStore.completedLessons(); track lessonId) {
+            <span class="lesson-tag">Lección {{ lessonId }}</span>
+          }
+        </div>
+      </div>
+    </section>
+  }
+</div>

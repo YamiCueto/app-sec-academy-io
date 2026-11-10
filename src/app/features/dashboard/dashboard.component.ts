@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
-import { PlaceholderViewComponent } from '../../shared/components/placeholder-view/placeholder-view.component';
+import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ProgressStore } from '../../core/stores/progress.store';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [PlaceholderViewComponent],
-  template: `
-    <app-placeholder-view
-      title="Panel de Aprendizaje"
-      code="DASHBOARD"
-      description="Visualización centralizada de métricas de progreso de ingeniería, total de XP acumulado, insignias técnicas desbloqueadas y lección recomendada según tu ruta de especialización."
-      milestone="Sprint 1 / Hito 2 (Persistencia y Estado Reactivo)"
-    />
-  `
+  imports: [RouterLink],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  protected readonly progressStore = inject(ProgressStore);
+
+  handleReset(): void {
+    this.progressStore.resetProgress();
+  }
+}
