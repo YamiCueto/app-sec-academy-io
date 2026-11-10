@@ -19,6 +19,13 @@
     </div>
   </header>
 
+  @if (progressStore.storageWarning()) {
+    <aside class="storage-warning-banner" role="alert" aria-live="polite">
+      <span class="warning-icon" aria-hidden="true">⚠️</span>
+      <p class="warning-message">{{ progressStore.storageWarning() }}</p>
+    </aside>
+  }
+
   <section class="stats-grid" aria-label="Métricas de progreso">
     <article class="stat-card">
       <span class="stat-label">Experiencia Acumulada</span>

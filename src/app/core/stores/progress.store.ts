@@ -34,8 +34,10 @@ export class ProgressStore {
   private readonly storage = inject(StorageService);
 
   private readonly _state = signal<UserProgressState>(this.storage.loadState());
+  private readonly _storageWarning = signal<string | null>(null);
 
   readonly state = this._state.asReadonly();
+  readonly storageWarning = this._storageWarning.asReadonly();
   readonly alias = computed(() => this._state().alias);
   readonly totalXP = computed(() => this._state().totalXP);
   readonly completedLessons = computed(() => this._state().completedLessons);
@@ -270,12 +272,20 @@ export class ProgressStore {
 
   resetProgress(): void {
     this.storage.clearState();
+    this._storageWarning.set(null);
     const freshState = this.storage.createInitialState();
     this._state.set(freshState);
   }
 
   private persistAndSet(nextState: UserProgressState): void {
-    this.storage.saveState(nextState);
+    const persisted = this.storage.saveState(nextState);
+    if (!persisted) {
+      this._storageWarning.set(
+        'El almacenamiento local no está disponible o ha alcanzado su cuota. Tu progreso continuará registrándose en memoria durante esta sesión.'
+      );
+    } else {
+      this._storageWarning.set(null);
+    }
     this._state.set(nextState);
   }
 

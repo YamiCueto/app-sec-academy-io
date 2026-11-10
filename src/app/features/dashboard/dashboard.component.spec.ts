@@ -89,4 +89,19 @@ describe('DashboardComponent (Integración Reactiva)', () => {
     expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('0 / 49');
     expect(compiled.querySelector('.empty-state-card')).toBeTruthy();
   });
+
+  it('debe mostrar la advertencia de persistencia de forma accesible cuando storage falla', () => {
+    mockDriver.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    progressStore.recordLessonCompletion('1.1', 50);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.storage-warning-banner')).toBeTruthy();
+    expect(compiled.querySelector('.warning-message')?.textContent).toContain('no está disponible');
+  });
 });

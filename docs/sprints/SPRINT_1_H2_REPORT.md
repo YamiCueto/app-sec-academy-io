@@ -6,7 +6,7 @@
 - **Línea Base Previa (Hito 1 Publicado)**: `efa746c` (`feat: initialize Angular application foundation`)
 - **Fecha de Ejecución**: 10 de noviembre de 2026
 - **Fase**: Sprint 1 — Hito 2: Persistencia Local (`StorageService`) y Estado Reactivo (`ProgressStore`)
-- **Estado**: **HITO 2 COMPLETADO — DETENIDO EN ESPERA DE AUTORIZACIÓN (FLAG STOP ACTIVO)**
+- **Estado**: **HITO 2 COMPLETADO Y SINCRONIZADO CON ORIGIN/MAIN**
 
 ---
 
@@ -16,12 +16,12 @@ El equipo de ingeniería ha completado el desarrollo, verificación e integraci�
 
 Se ha implementado una arquitectura de persistencia soberana y desacoplada del navegador mediante el patrón Driver (`StorageDriver`), acompañada por el servicio `StorageService` con versionado estricto (`schemaVersion: '1.0.0'`), validación exhaustiva de contratos, contención ante almacenamiento deshabilitado o cuotas excedidas, y recuperación transparente ante JSON malformado.
 
-Sobre esta base se construyó el almacén de estado reactivo `ProgressStore` utilizando exclusivamente **Angular Signals (`signal`, `computed`)**, garantizando reactividad instantánea, cálculo de avance matemático derivado del catálogo troncal (sin división por cero y acotado al 100 %), cálculo determinista de experiencia (*XP*) y rangos de ingeniería, prevención de registros duplicados e inmunidad ante pérdida silenciosa del estado en memoria si el almacenamiento persistente falla.
+Sobre esta base se construyó el almacén de estado reactivo `ProgressStore` utilizando exclusivamente **Angular Signals (`signal`, `computed`)**, garantizando reactividad instantánea, cálculo de avance matemático derivado del catálogo troncal (sin división por cero y acotado al 100 %), cálculo determinista de experiencia (*XP*) y rangos de ingeniería, prevención de registros duplicados e inmunidad ante pérdida silenciosa del estado en memoria si el almacenamiento persistente falla. Los errores de almacenamiento son observables para el usuario mediante una señal (`storageWarning`) y un banner en el Dashboard sin tecnicismos innecesarios.
 
 Finalmente, se integró el componente `DashboardComponent` con el estado real, presentando estados vacíos informativos sin simulación de datos falsos.
 
 ### Dictamen Técnico:
-**APTO PARA REVISIÓN. CRITERIOS DE ACEPTACIÓN DEL HITO 2 CUMPLIDOS CON EVIDENCIA EMPÍRICA REPRODUCIBLE (40/40 PRUEBAS APROBADAS).**
+**APROBADO Y PUBLICADO. CRITERIOS DE ACEPTACIÓN DEL HITO 2 CUMPLIDOS CON EVIDENCIA EMPÍRICA REPRODUCIBLE (41/41 PRUEBAS APROBADAS).**
 
 > [!IMPORTANT]
 > **Detención Formal de Implementación (FLAG STOP)**:

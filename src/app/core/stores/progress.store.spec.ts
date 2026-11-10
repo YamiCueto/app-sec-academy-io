@@ -143,13 +143,14 @@ describe('ProgressStore', () => {
     expect(store.completedLessons()).toContain('1.2');
   });
 
-  it('debe mantener el estado reactivo en memoria intacto incluso si falla la persistencia', () => {
+  it('debe mantener el estado reactivo en memoria intacto y emitir una advertencia observable si falla la persistencia', () => {
     mockDriver.shouldFailSet = true;
 
     store.recordLessonCompletion('1.1', 120);
 
     expect(store.completedLessons()).toContain('1.1');
     expect(store.totalXP()).toBe(120);
+    expect(store.storageWarning()).toContain('no está disponible');
   });
 
   it('debe asignar los rangos tecnicos correctos segun el XP acumulado', () => {
