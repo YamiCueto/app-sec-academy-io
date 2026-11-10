@@ -1,0 +1,37 @@
+.mobile-sections-nav {
+  display: block;
+  @media (min-width: 1024px) { display: none; }
+}
+
+.desktop-sections-sidebar {
+  display: none;
+
+  @media (min-width: 1024px) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    position: sticky;
+    top: 72px;
+  }
+}
+
+.dual-panel-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 300px 1fr;
+    align-items: start;
+  }
+}
+
+.active-section-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}

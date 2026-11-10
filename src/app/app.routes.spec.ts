@@ -48,13 +48,11 @@ describe('Enrutamiento y Navegacion Inicial', () => {
     expect(param?.textContent).toContain('m01');
   });
 
-  it('debe navegar hacia /leccion/:id y reflejar el identificador de la leccion', async () => {
-    await harness.navigateByUrl('/leccion/1.2');
-    expect(location.path()).toBe('/leccion/1.2');
-    const title = harness.routeNativeElement?.querySelector('.view-title');
-    const param = harness.routeNativeElement?.querySelector('.param-value');
-    expect(title?.textContent).toContain('Espacio de Trabajo de Lección');
-    expect(param?.textContent).toContain('1.2');
+  it('debe navegar hacia /leccion/:id y renderizar el espacio de leccion', async () => {
+    await harness.navigateByUrl('/leccion/1.1');
+    expect(location.path()).toBe('/leccion/1.1');
+    const title = harness.routeNativeElement?.querySelector('.lesson-main-title');
+    expect(title?.textContent).toContain('Anatomía de Debilidades');
   });
 
   it('debe navegar hacia /laboratorio/:id y reflejar el identificador del laboratorio', async () => {

@@ -1,0 +1,344 @@
+<div class="workspace-wrapper">
+  @if (isLoading()) {
+    <div class="loading-container" role="status" aria-live="polite">
+      <div class="spinner"></div>
+      <p class="loading-text">Cargando espacio de trabajo de la lección...</p>
+    </div>
+  } @else if (!lesson()) {
+    <section class="lesson-not-found-card" aria-labelledby="not-found-heading">
+      <span class="warning-badge">Contenido no disponible</span>
+      <h1 id="not-found-heading" class="not-found-title">Lección no encontrada</h1>
+      <p class="not-found-message">
+        La lección identificada como <code>{{ id() }}</code> no se encuentra disponible o aún no ha sido desarrollada en esta fase.
+      </p>
+      <div class="not-found-actions">
+        <a routerLink="/curriculum" class="btn btn-primary">Volver al Currículo</a>
+        <a routerLink="/dashboard" class="btn btn-secondary">Ir al Panel</a>
+      </div>
+    </section>
+  } @else {
+    @let current = lesson()!;
+
+    <header class="workspace-header">
+      <div class="header-top">
+        <nav class="breadcrumb-nav" aria-label="Ruta de navegación">
+          <a routerLink="/curriculum" class="breadcrumb-link">Currículo</a>
+          <span class="breadcrumb-separator">/</span>
+          <a [routerLink]="['/modulo', current.moduleId]" class="breadcrumb-link">Módulo {{ current.moduleId.toUpperCase() }}</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Lección {{ current.id }}</span>
+        </nav>
+
+        <div class="header-status">
+          @if (isLessonDoneInStore()) {
+            <span class="completion-pill completed">✓ Aprobada</span>
+          } @else {
+            <span class="completion-pill in-progress">En Progreso</span>
+          }
+        </div>
+      </div>
+
+      <div class="header-title-row">
+        <h1 class="lesson-main-title">{{ current.title }}</h1>
+        <div class="lesson-meta-chips">
+          <span class="meta-chip difficulty">{{ current.difficulty }}</span>
+          <span class="meta-chip duration">⏱ {{ current.estimatedMinutes }} min</span>
+          @for (owasp of current.standards.owasp ?? []; track owasp) {
+            <span class="meta-chip standard">{{ owasp }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="progress-bar-container" aria-label="Progreso de lectura de la lección">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" [style.width.%]="readingProgressPercent()"></div>
+        </div>
+        <span class="progress-label">{{ visitedSections().size }} de 9 secciones revisadas ({{ readingProgressPercent() }}%)</span>
+      </div>
+    </header>
+
+    <div class="workspace-body">
+      <nav class="mobile-sections-nav" aria-label="Navegación móvil de secciones">
+        <div class="mobile-tabs-scroll">
+          @for (section of sectionsCatalog; track section.id) {
+            <button
+              type="button"
+              class="mobile-tab-btn"
+              [class.active]="activeSectionId() === section.id"
+              [class.visited]="visitedSections().has(section.id)"
+              (click)="goToSection(section.id)"
+            >
+              <span class="tab-icon">{{ section.icon }}</span>
+              <span class="tab-label">{{ section.shortTitle }}</span>
+            </button>
+          }
+        </div>
+      </nav>
+
+      <div class="dual-panel-layout">
+        <aside class="desktop-sections-sidebar" aria-label="Índice de secciones de la lección">
+          <h2 class="sidebar-heading">Estructura de la Lección</h2>
+          <ul class="sections-menu">
+            @for (section of sectionsCatalog; track section.id) {
+              <li>
+                <button
+                  type="button"
+                  class="section-nav-item"
+                  [class.active]="activeSectionId() === section.id"
+                  [class.visited]="visitedSections().has(section.id)"
+                  (click)="goToSection(section.id)"
+                >
+                  <span class="nav-icon" aria-hidden="true">{{ section.icon }}</span>
+                  <span class="nav-title">{{ section.title }}</span>
+                  @if (visitedSections().has(section.id)) {
+                    <span class="visited-check" aria-label="Sección visitada">✓</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </aside>
+
+        <main class="active-section-panel" role="main" [attr.aria-label]="currentSectionMeta().title">
+          <div class="section-card">
+            <header class="section-card-header">
+              <span class="section-number">Sección {{ currentSectionIndex() + 1 }} de 9</span>
+              <h2 class="section-heading">{{ currentSectionMeta().title }}</h2>
+            </header>
+
+            <div class="section-card-content">
+              @switch (activeSectionId()) {
+                @case ('introduccion') {
+                  <article class="content-block">
+                    <p class="lead-text">{{ current.sections.introduction }}</p>
+                    <div class="standards-box">
+                      <h3 class="subsection-title">Estándares y Mapeos Oficiales</h3>
+                      <div class="tags-container">
+                        @for (owasp of current.standards.owasp ?? []; track owasp) {
+                          <span class="tag-pill tag-owasp">OWASP: {{ owasp }}</span>
+                        }
+                        @for (cwe of current.standards.cwe ?? []; track cwe) {
+                          <span class="tag-pill tag-cwe">CWE: {{ cwe }}</span>
+                        }
+                        @for (asvs of current.standards.asvs ?? []; track asvs) {
+                          <span class="tag-pill tag-asvs">ASVS: {{ asvs }}</span>
+                        }
+                      </div>
+                    </div>
+                  </article>
+                }
+
+                @case ('objetivos') {
+                  <article class="content-block">
+                    <p class="lead-text">Al concluir esta lección, el estudiante dispondrá de las siguientes competencias demostrables:</p>
+                    <ul class="objectives-list">
+                      @for (objective of current.sections.objectives; track objective) {
+                        <li class="objective-item">
+                          <span class="bullet-check">✓</span>
+                          <span class="objective-text">{{ objective }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </article>
+                }
+
+                @case ('conceptos') {
+                  <article class="content-block">
+                    <p class="body-text">{{ current.sections.conceptualExplanation.markdown }}</p>
+                    <div class="keypoints-grid">
+                      @for (point of current.sections.conceptualExplanation.keyPoints; track point) {
+                        <div class="keypoint-card">
+                          <span class="keypoint-icon">⚡</span>
+                          <p class="keypoint-text">{{ point }}</p>
+                        </div>
+                      }
+                    </div>
+                  </article>
+                }
+
+                @case ('ejemplos') {
+                  <article class="content-block">
+                    @for (example of current.sections.technicalExamples; track example.title) {
+                      <div class="technical-example-item">
+                        <h3 class="example-title">{{ example.title }}</h3>
+                        <div class="code-comparison-stack">
+                          <div class="code-segment vulnerable-segment">
+                            <app-code-viewer
+                              [code]="example.vulnerableSnippet"
+                              [filename]="example.vulnerableFilename"
+                              [language]="example.language"
+                              variant="vulnerable"
+                            />
+                            <p class="explanation-text vulnerable-text">
+                              <strong>Vector Inseguro:</strong> {{ example.vulnerableExplanation }}
+                            </p>
+                          </div>
+
+                          <div class="code-segment remediated-segment">
+                            <app-code-viewer
+                              [code]="example.remediatedSnippet"
+                              [filename]="example.remediatedFilename"
+                              [language]="example.language"
+                              variant="remediated"
+                            />
+                            <p class="explanation-text remediated-text">
+                              <strong>Patrón Seguro:</strong> {{ example.remediatedExplanation }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </article>
+                }
+
+                @case ('escenarios') {
+                  <article class="content-block">
+                    @for (scenario of current.sections.realScenarios; track scenario.incidentTitle) {
+                      <div class="scenario-card">
+                        <div class="scenario-header">
+                          <h3 class="scenario-title">{{ scenario.incidentTitle }}</h3>
+                          @if (scenario.cveReference) {
+                            <span class="cve-tag">{{ scenario.cveReference }}</span>
+                          }
+                        </div>
+                        <p class="scenario-summary">{{ scenario.summary }}</p>
+                        <div class="mitigation-box">
+                          <h4 class="mitigation-title">Análisis Defensivo y Mitigación:</h4>
+                          <p class="mitigation-text">{{ scenario.mitigationAnalysis }}</p>
+                        </div>
+                      </div>
+                    }
+                  </article>
+                }
+
+                @case ('laboratorio') {
+                  <article class="content-block">
+                    <div class="lab-mission-card">
+                      <div class="mission-header">
+                        <span class="mission-tag">Laboratorio Confinado</span>
+                        <h3 class="mission-title">{{ current.sections.lab.title }}</h3>
+                      </div>
+                      <p class="mission-prompt">{{ current.sections.lab.missionPrompt }}</p>
+
+                      <div class="hints-accordion">
+                        <h4 class="hints-title">Pistas Progresivas Disponibles</h4>
+                        <ol class="hints-list">
+                          @for (hint of current.sections.lab.hints; track hint) {
+                            <li class="hint-item">{{ hint }}</li>
+                          }
+                        </ol>
+                      </div>
+
+                      <div class="lab-card-actions">
+                        <a [routerLink]="['/laboratorio', current.sections.lab.labId]" class="btn btn-primary">
+                          Iniciar Laboratorio en Sandbox
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                }
+
+                @case ('evaluacion') {
+                  <article class="content-block">
+                    <app-quiz-runner
+                      [questions]="current.sections.knowledgeCheck.questions"
+                      [lessonId]="current.id"
+                    />
+                  </article>
+                }
+
+                @case ('resumen') {
+                  <article class="content-block">
+                    <div class="summary-grid">
+                      <div class="summary-column golden-column">
+                        <h3 class="summary-col-title">Reglas de Oro Defensivas</h3>
+                        <ul class="summary-list">
+                          @for (rule of current.sections.summary.goldenRules; track rule) {
+                            <li class="summary-item golden-item">
+                              <span class="item-icon">✓</span>
+                              <span>{{ rule }}</span>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+
+                      <div class="summary-column antipattern-column">
+                        <h3 class="summary-col-title">Anti-patrones a Evitar</h3>
+                        <ul class="summary-list">
+                          @for (anti of current.sections.summary.antipatterns; track anti) {
+                            <li class="summary-item antipattern-item">
+                              <span class="item-icon">✗</span>
+                              <span>{{ anti }}</span>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  </article>
+                }
+
+                @case ('referencias') {
+                  <article class="content-block">
+                    <ul class="references-list">
+                      @for (ref of current.sections.references; track ref.url) {
+                        <li class="reference-item">
+                          <div class="ref-info">
+                            <span class="ref-org">{{ ref.organization }}</span>
+                            <h3 class="ref-title">{{ ref.title }}</h3>
+                          </div>
+                          <a
+                            [href]="ref.url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="ref-link-btn"
+                            aria-label="Abrir referencia oficial en nueva pestaña"
+                          >
+                            Consultar Estándar ↗
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  </article>
+                }
+              }
+            </div>
+
+            <footer class="section-card-footer">
+              <button
+                type="button"
+                class="btn btn-secondary nav-btn prev-btn"
+                (click)="prevSection()"
+                [disabled]="currentSectionIndex() === 0"
+              >
+                ← Sección Anterior
+              </button>
+
+              @if (currentSectionIndex() < sectionsCatalog.length - 1) {
+                <button
+                  type="button"
+                  class="btn btn-primary nav-btn next-btn"
+                  (click)="nextSection()"
+                >
+                  Siguiente Sección →
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn-success complete-lesson-btn"
+                  (click)="markLessonAsCompleted()"
+                  [disabled]="isLessonDoneInStore()"
+                >
+                  @if (isLessonDoneInStore()) {
+                    ✓ Lección Completada en Perfil
+                  } @else {
+                    Finalizar y Registrar Lección (+100 XP)
+                  }
+                </button>
+              }
+            </footer>
+          </div>
+        </main>
+      </div>
+    </div>
+  }
+</div>

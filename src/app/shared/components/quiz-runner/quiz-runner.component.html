@@ -1,0 +1,85 @@
+<div class="quiz-runner-container" role="region" aria-label="Cuestionario formativo de la lección">
+  <div class="quiz-header">
+    <div class="quiz-meta">
+      <span class="quiz-badge">Evaluación Formativa</span>
+      <span class="quiz-rule">Umbral de aprobación: 80% (100 XP base)</span>
+    </div>
+    @if (isSubmitted()) {
+      <div class="score-pill" [class.passed]="isPassed()" [class.failed]="!isPassed()">
+        Puntuación: {{ score() }}% ({{ isPassed() ? 'Aprobada' : 'No superada' }})
+      </div>
+    }
+  </div>
+
+  <div class="questions-list">
+    @for (question of displayQuestions(); track question.id; let qIndex = $index) {
+      <fieldset class="question-fieldset" [attr.aria-disabled]="isSubmitted()">
+        <legend class="question-legend">
+          <span class="q-number">{{ qIndex + 1 }}.</span>
+          <span class="q-prompt">{{ question.prompt }}</span>
+        </legend>
+
+        <div class="options-group" role="radiogroup" [attr.aria-label]="question.prompt">
+          @for (option of question.options; track option.id) {
+            <label
+              class="option-card"
+              [class.selected]="selectedAnswers()[question.id] === option.id"
+              [class.correct]="isSubmitted() && option.isCorrect"
+              [class.incorrect]="isSubmitted() && selectedAnswers()[question.id] === option.id && !option.isCorrect"
+            >
+              <input
+                type="radio"
+                class="option-radio"
+                [name]="'question_' + question.id"
+                [value]="option.id"
+                [checked]="selectedAnswers()[question.id] === option.id"
+                [disabled]="isSubmitted()"
+                (change)="selectOption(question.id, option.id)"
+              />
+              <span class="option-text">{{ option.text }}</span>
+            </label>
+          }
+        </div>
+
+        @if (isSubmitted()) {
+          @if (getSelectedOption(question); as chosen) {
+            <div class="feedback-card" [class.feedback-correct]="chosen.isCorrect" [class.feedback-incorrect]="!chosen.isCorrect">
+              <span class="feedback-status">
+                {{ chosen.isCorrect ? '✓ Respuesta Correcta' : '✗ Justificación de Falla' }}
+              </span>
+              <p class="feedback-text">{{ chosen.feedback }}</p>
+            </div>
+          }
+        }
+      </fieldset>
+    }
+  </div>
+
+  <div class="quiz-actions">
+    @if (!isSubmitted()) {
+      <button
+        type="button"
+        class="btn btn-primary submit-btn"
+        (click)="submitQuiz()"
+        [disabled]="!allAnswered()"
+      >
+        Evaluar Respuestas
+      </button>
+    } @else {
+      @if (!isPassed()) {
+        <button
+          type="button"
+          class="btn btn-secondary retry-btn"
+          (click)="retryQuiz()"
+        >
+          Reintentar con Opciones Barajadas
+        </button>
+      } @else {
+        <div class="passed-alert" role="status">
+          <span class="passed-icon">🎉</span>
+          <span class="passed-text">¡Evaluación formativa superada con éxito! Has afianzado el conocimiento de esta lección.</span>
+        </div>
+      }
+    }
+  </div>
+</div>

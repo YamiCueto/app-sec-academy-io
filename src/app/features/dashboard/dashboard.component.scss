@@ -76,49 +76,6 @@
   line-height: 1.4;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  min-height: 44px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 150ms ease-in-out;
-}
-
-.btn-danger-outline {
-  background: transparent;
-  color: var(--sec-critical);
-  border: 1px solid var(--sec-critical);
-
-  &:hover {
-    background-color: rgba(244, 63, 94, 0.15);
-  }
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: var(--bg-base);
-
-  &:hover {
-    background-color: var(--color-primary-hover);
-  }
-}
-
-.btn-secondary {
-  background-color: var(--bg-surface-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-
-  &:hover {
-    background-color: var(--border-subtle);
-  }
-}
-
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr;

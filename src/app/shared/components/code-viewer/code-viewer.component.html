@@ -1,0 +1,35 @@
+<div class="code-viewer-container" [class]="'variant-' + variant()">
+  <div class="code-header">
+    <div class="header-left">
+      @if (variant() === 'vulnerable') {
+        <span class="variant-pill pill-vulnerable">Vulnerable</span>
+      } @else if (variant() === 'remediated') {
+        <span class="variant-pill pill-remediated">Remediado</span>
+      }
+
+      @if (filename()) {
+        <span class="file-name">{{ filename() }}</span>
+      }
+    </div>
+
+    <div class="header-right">
+      <span class="language-tag">{{ language() }}</span>
+      <button
+        type="button"
+        class="copy-btn"
+        (click)="copyCode()"
+        [attr.aria-label]="copied() ? 'Código copiado al portapapeles' : 'Copiar código al portapapeles'"
+      >
+        @if (copied()) {
+          <span class="copy-status copied">✓ Copiado</span>
+        } @else {
+          <span class="copy-status">Copiar</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <div class="code-body" tabindex="0" role="region" aria-label="Visualizador de código fuente">
+    <pre class="code-pre"><code class="code-block">@for (line of lines(); track $index) {<div class="code-line"><span class="line-number" aria-hidden="true">{{ $index + 1 }}</span><span class="line-content">{{ line || ' ' }}</span></div>}</code></pre>
+  </div>
+</div>
