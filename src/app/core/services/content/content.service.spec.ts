@@ -24,10 +24,17 @@ describe('ContentService', () => {
     expect(lesson?.sections.conceptualExplanation.keyPoints.length).toBeGreaterThan(0);
     expect(lesson?.sections.technicalExamples.length).toBeGreaterThan(0);
     expect(lesson?.sections.realScenarios.length).toBeGreaterThan(0);
-    expect(lesson?.sections.lab.labId).toBe('lab-bac-01');
+    expect(lesson?.sections.lab.labId).toBeTruthy();
     expect(lesson?.sections.knowledgeCheck.questions.length).toBe(3);
     expect(lesson?.sections.summary.goldenRules.length).toBeGreaterThan(0);
     expect(lesson?.sections.references.length).toBeGreaterThan(0);
+  });
+
+  it('debe resolver la leccion 1.2 sobre Broken Access Control vinculada al laboratorio LAB-BAC-01', async () => {
+    const lesson = await service.getLessonById('1.2');
+    expect(lesson).toBeTruthy();
+    expect(lesson?.id).toBe('1.2');
+    expect(lesson?.sections.lab.labId).toBe('LAB-BAC-01');
   });
 
   it('debe retornar null para identificadores de lecciones no existentes', async () => {

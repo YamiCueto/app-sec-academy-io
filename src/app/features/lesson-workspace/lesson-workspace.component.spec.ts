@@ -64,7 +64,7 @@ describe('LessonWorkspaceComponent', () => {
       'Anatomía de Debilidades y Metodología OWASP'
     );
     expect(compiled.querySelector('.meta-chip.difficulty')?.textContent).toContain('basico');
-    expect(compiled.querySelector('.meta-chip.duration')?.textContent).toContain('30 min');
+    expect(compiled.querySelector('.meta-chip.duration')?.textContent).toContain('25 min');
   });
 
   it('no debe marcar la leccion como completada simplemente por abrirla', async () => {

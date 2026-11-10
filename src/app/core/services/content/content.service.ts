@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
 import { LessonDetail, isValidLessonDetail, ModuleMetadata } from '../../../models/content.model';
 import { CURRICULUM_MODULES } from '../../constants/curriculum.constants';
-import { DEMO_LESSON_1_1 } from './data/lesson-1.1.demo';
+import { LESSON_1_1_DATA } from './data/lesson-1.1.data';
+import { LESSON_1_2_DATA } from './data/lesson-1.2.data';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContentService {
   private readonly lessonRegistry: Readonly<Record<string, LessonDetail>> = {
-    '1.1': DEMO_LESSON_1_1,
-    '1.1-metodologia-owasp': DEMO_LESSON_1_1
+    '1.1': LESSON_1_1_DATA,
+    '1.1-metodologia-owasp': LESSON_1_1_DATA,
+    '1.2': LESSON_1_2_DATA,
+    '1.2-broken-access-control': LESSON_1_2_DATA
   };
 
   getLessonSync(lessonId: string): LessonDetail | null {
