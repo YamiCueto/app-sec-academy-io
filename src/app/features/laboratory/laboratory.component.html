@@ -1,0 +1,304 @@
+<div class="lab-container">
+  @if (!definition()) {
+    <div class="card not-found-card">
+      <h2 class="not-found-title">Laboratorio no encontrado</h2>
+      <p class="not-found-desc">
+        El identificador "{{ id() }}" no corresponde a un laboratorio activo en el catalogo actual.
+      </p>
+      <a routerLink="/curriculum" class="btn btn-primary">Volver al catalogo</a>
+    </div>
+  } @else {
+    <header class="lab-header">
+      <div class="header-badges">
+        <span class="badge badge-primary">{{ definition()?.code }}</span>
+        <span class="badge badge-sec">{{ definition()?.owaspCategory }}</span>
+        <span class="badge badge-outline">{{ definition()?.cweReference }}</span>
+        <span class="badge badge-outline">{{ definition()?.asvsReference }}</span>
+        @if (isLabCompletedInStore()) {
+          <span class="badge badge-success">Completado (+100 XP)</span>
+        }
+      </div>
+
+      <h1 class="lab-title">{{ definition()?.title }}</h1>
+      <p class="lab-desc">{{ definition()?.description }}</p>
+
+      <div class="scenario-banner">
+        <strong>Contexto del Escenario:</strong> {{ definition()?.scenarioDescription }}
+      </div>
+    </header>
+
+    <nav class="lab-tabs" aria-label="Navegacion del laboratorio">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'simulation'"
+        (click)="onSelectTab('simulation')"
+      >
+        Simulador de Peticiones HTTP
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'suite'"
+        (click)="onSelectTab('suite')"
+      >
+        Bateria de Aserciones de Seguridad
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'theory'"
+        (click)="onSelectTab('theory')"
+      >
+        Analisis y Remediacion (OWASP)
+      </button>
+    </nav>
+
+    @if (activeTab() === 'simulation') {
+      <div class="lab-grid">
+        <section class="config-panel card" aria-labelledby="config-heading">
+          <h2 id="config-heading" class="panel-title">1. Configuracion de la Solicitud</h2>
+
+          <div class="form-group">
+            <label class="form-label">Sujeto Autenticado (Token de Sesion Simulado):</label>
+            <div class="users-selector">
+              @for (user of definition()?.simulatedEntities?.users; track user.id) {
+                <button
+                  type="button"
+                  class="select-pill"
+                  [class.selected]="selectedUserId() === user.id"
+                  (click)="onSelectUser(user.id)"
+                >
+                  <span class="user-role-badge" [class.attacker]="user.role === 'atacante'" [class.admin]="user.role === 'admin'">
+                    {{ user.role }}
+                  </span>
+                  <span class="user-name">{{ user.name }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Expediente Clinico Solicitado en la URL (/api/pacientes/:id):</label>
+            <div class="resources-selector">
+              @for (res of definition()?.simulatedEntities?.resources; track res.id) {
+                <button
+                  type="button"
+                  class="select-pill"
+                  [class.selected]="selectedResourceId() === res.id"
+                  (click)="onSelectResource(res.id)"
+                >
+                  <strong>{{ res.id }}</strong>
+                  <span class="res-owner">Titular: {{ res.ownerId }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Politica de Control de Acceso Evaluada:</label>
+            <div class="policy-selector">
+              <label class="radio-card" [class.selected]="selectedPolicyMode() === 'vulnerable_no_check'">
+                <input
+                  type="radio"
+                  name="policyMode"
+                  value="vulnerable_no_check"
+                  [checked]="selectedPolicyMode() === 'vulnerable_no_check'"
+                  (change)="onSelectPolicyMode('vulnerable_no_check')"
+                />
+                <div class="radio-content">
+                  <strong class="text-danger">Vulnerable (Sin verificacion de tenencia)</strong>
+                  <small>El controlador confia en el parametro de la URL sin contrastar con el sujeto autenticado (IDOR activo).</small>
+                </div>
+              </label>
+
+              <label class="radio-card" [class.selected]="selectedPolicyMode() === 'remediated_owner_check'">
+                <input
+                  type="radio"
+                  name="policyMode"
+                  value="remediated_owner_check"
+                  [checked]="selectedPolicyMode() === 'remediated_owner_check'"
+                  (change)="onSelectPolicyMode('remediated_owner_check')"
+                />
+                <div class="radio-content">
+                  <strong class="text-success">Remediada (Verificacion estricta de tenencia)</strong>
+                  <small>Aplica el principio de Deny by Default: solo el titular o administradores con rol formal tienen acceso.</small>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="isExecuting()"
+              (click)="onExecuteSimulation()"
+            >
+              @if (isExecuting()) {
+                <span>Evaluando en Sandbox...</span>
+              } @else {
+                <span>Enviar Peticion HTTP Simulada</span>
+              }
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="isExecuting()"
+              (click)="onRunTestSuite()"
+            >
+              Ejecutar Bateria de Tests (5 Aserciones)
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline"
+              [disabled]="isExecuting()"
+              (click)="onReset()"
+            >
+              Restablecer
+            </button>
+          </div>
+        </section>
+
+        <section class="results-panel card" aria-labelledby="results-heading">
+          <h2 id="results-heading" class="panel-title">2. Consola de Inspeccion de Red y Sandbox</h2>
+
+          @if (!singleExecutionResult()) {
+            <div class="empty-results">
+              <p>Selecciona un usuario, un expediente y una politica, luego presiona "Enviar Peticion HTTP Simulada" para observar la respuesta del servicio.</p>
+            </div>
+          } @else {
+            <div class="response-inspector" aria-live="polite">
+              <div class="http-status-bar">
+                <span class="status-badge" [class.status-200]="singleExecutionResult()?.httpStatus === 200" [class.status-403]="singleExecutionResult()?.httpStatus === 403" [class.status-404]="singleExecutionResult()?.httpStatus === 404">
+                  HTTP {{ singleExecutionResult()?.httpStatus }}
+                </span>
+                <span class="latency-chip">{{ singleExecutionResult()?.durationMs }} ms</span>
+                <span class="execution-id">ID: {{ singleExecutionResult()?.executionId }}</span>
+              </div>
+
+              @if (singleExecutionResult()?.httpStatus === 200) {
+                <div class="payload-box success-box">
+                  <div class="payload-title">Cuerpo de Respuesta (JSON Entregado):</div>
+                  <pre class="json-output"><code>{{ singleExecutionResult()?.responsePayload | json }}</code></pre>
+                  @if (selectedUserId() === 'usr-eve' && selectedResourceId() === 'med-rec-001') {
+                    <div class="exploit-warning">
+                      <strong>ALERTA DE SEGURIDAD CRITICA (IDOR MANIFESTADO):</strong>
+                      El atacante "{{ selectedUser()?.username }}" obtuvo acceso no autorizado a los datos clinicos confidenciales de Alice Moreno.
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="payload-box error-box">
+                  <div class="payload-title">Error de Autorizacion (HTTP 403 Forbidden):</div>
+                  <p class="error-text">{{ singleExecutionResult()?.errorMessage }}</p>
+                  <div class="remediation-success">
+                    <strong>DEFENSA EFECTIVA:</strong>
+                    La peticion no autorizada fue bloqueada en la frontera de servicio antes de alcanzar la persistencia.
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    }
+
+    @if (activeTab() === 'suite') {
+      <div class="suite-container card">
+        <div class="suite-header">
+          <div>
+            <h2 class="panel-title">Bateria de Aserciones Automatizadas</h2>
+            <p class="suite-desc">
+              Valida formalmente el comportamiento de la politica activa frente a vectores de ataque horizontal, consultas legitimas y denegacion por defecto.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="isExecuting()"
+            (click)="onRunTestSuite()"
+          >
+            @if (isExecuting()) {
+              <span>Ejecutando en Sandbox...</span>
+            } @else {
+              <span>Reejecutar Suite Completa</span>
+            }
+          </button>
+        </div>
+
+        @if (!suiteExecutionResult()) {
+          <div class="empty-results">
+            <p>Presiona "Reejecutar Suite Completa" para evaluar la politica seleccionada frente a la matriz de aserciones.</p>
+          </div>
+        } @else {
+          <div class="suite-summary-banner" [class.passed]="suiteExecutionResult()?.allPassed" [class.failed]="!suiteExecutionResult()?.allPassed">
+            @if (suiteExecutionResult()?.allPassed) {
+              <div class="summary-text">
+                <h3>Aprobado: 100% de Aserciones Superadas (+100 XP Otorgados)</h3>
+                <p>La politica remediada supera con exito todos los requisitos de aislamiento multi-inquilino de OWASP ASVS V4 y previene IDOR.</p>
+              </div>
+            } @else {
+              <div class="summary-text">
+                <h3>Fallido: Vulnerabilidad de Broken Access Control Detectada</h3>
+                <p>La politica activa no impidio que usuarios no autorizados consultaran registros privados ajenos. Aplica la politica remediada para aprobar.</p>
+              </div>
+            }
+          </div>
+
+          <div class="assertions-list">
+            @for (assert of suiteExecutionResult()?.assertions; track assert.id) {
+              <div class="assertion-card" [class.passed]="assert.passed" [class.failed]="!assert.passed">
+                <div class="assert-top">
+                  <span class="assert-badge" [class.passed]="assert.passed" [class.failed]="!assert.passed">
+                    {{ assert.passed ? 'APROBADA' : 'FALLIDA' }}
+                  </span>
+                  <span class="assert-title">{{ assert.description }}</span>
+                  <span class="assert-duration">{{ assert.durationMs }} ms</span>
+                </div>
+                <div class="assert-details">
+                  <p><strong>Esperado:</strong> {{ assert.expected }}</p>
+                  <p><strong>Obtenido:</strong> {{ assert.actual }}</p>
+                  @if (assert.details) {
+                    <p class="assert-notes">{{ assert.details }}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'theory') {
+      <div class="theory-grid">
+        <div class="card theory-card">
+          <h2 class="panel-title">Diferencia Fundamental: Autenticacion vs Autorizacion</h2>
+          <p>
+            Un error comun en ingenieria de software es suponer que si un usuario ha iniciado sesion con credenciales validas (Autenticacion), cualquier solicitud que realice es legitima.
+          </p>
+          <ul>
+            <li><strong>Autenticacion (AuthN):</strong> Comprueba quien es el usuario (mediante tokens JWT, contraseñas o llaves).</li>
+            <li><strong>Autorizacion (AuthZ):</strong> Comprueba si ese usuario especifico tiene privilegios concedidos sobre el objeto exacto solicitado.</li>
+          </ul>
+        </div>
+
+        <div class="card theory-card">
+          <h2 class="panel-title">Patron Defensivo: Deny by Default y Mediacion Completa</h2>
+          <p>
+            Para erradicar IDOR/BOLA en APIs REST, la verificacion de tenencia debe integrarse directamente en la consulta a la base de datos:
+          </p>
+          <pre class="code-box"><code>const record = await db.clinicalRecords.findFirst(&#123;
+  where: &#123;
+    id: requestedId,
+    ownerId: sessionUser.id
+  &#125;
+&#125;);
+if (!record) return res.status(403).json(&#123; error: 'Acceso denegado' &#125;);</code></pre>
+        </div>
+      </div>
+    }
+  }
+</div>

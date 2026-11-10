@@ -58,10 +58,10 @@ describe('Enrutamiento y Navegacion Inicial', () => {
   it('debe navegar hacia /laboratorio/:id y reflejar el identificador del laboratorio', async () => {
     await harness.navigateByUrl('/laboratorio/lab-bac-01');
     expect(location.path()).toBe('/laboratorio/lab-bac-01');
-    const title = harness.routeNativeElement?.querySelector('.view-title');
-    const param = harness.routeNativeElement?.querySelector('.param-value');
-    expect(title?.textContent).toContain('Laboratorio Interactivo de Seguridad');
-    expect(param?.textContent).toContain('lab-bac-01');
+    const title = harness.routeNativeElement?.querySelector('.lab-title');
+    const badge = harness.routeNativeElement?.querySelector('.badge-primary');
+    expect(title?.textContent).toContain('Control de Acceso y Remediación IDOR en API');
+    expect(badge?.textContent).toContain('BAC-01');
   });
 
   it('debe navegar hacia /perfil cargando la vista provisional de perfil', async () => {

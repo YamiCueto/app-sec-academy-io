@@ -42,6 +42,8 @@ export class ProgressStore {
   readonly totalXP = computed(() => this._state().totalXP);
   readonly completedLessons = computed(() => this._state().completedLessons);
   readonly completedLessonsCount = computed(() => this._state().completedLessons.length);
+  readonly labRecords = computed(() => this._state().labRecords);
+  readonly lessonRecords = computed(() => this._state().lessonRecords);
 
   readonly completedLabsCount = computed(() => {
     return Object.values(this._state().labRecords).filter((lab) => lab.passed).length;
@@ -221,6 +223,22 @@ export class ProgressStore {
     };
 
     this.persistAndSet(nextState);
+  }
+
+  recordLabAttempt(attempt: {
+    labId: string;
+    success: boolean;
+    score: number;
+    hintsUsed?: number;
+    lessonId?: string;
+  }): void {
+    this.recordLabResult(
+      attempt.labId,
+      attempt.success,
+      attempt.score,
+      attempt.hintsUsed ?? 0,
+      attempt.lessonId
+    );
   }
 
   getModuleProgress(moduleId: string): ModuleProgressSummary {
