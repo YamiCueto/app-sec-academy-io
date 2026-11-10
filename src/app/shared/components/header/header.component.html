@@ -1,0 +1,61 @@
+<header class="app-header" role="banner">
+  <div class="header-container">
+    <a routerLink="/inicio" class="brand" aria-label="Ir a inicio de AppSec Academy" (click)="layoutService.closeMobileMenu()">
+      <span class="brand-badge">APPSEC</span>
+      <span class="brand-title">Academy</span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Navegación principal">
+      <ul class="nav-list">
+        @for (link of navLinks; track link.path) {
+          <li>
+            <a
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: link.exact ?? false }"
+              class="nav-link"
+            >
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <span class="version-tag" aria-label="Fase actual">Sprint 1 / Hito 1</span>
+      <button
+        type="button"
+        class="mobile-menu-toggle"
+        (click)="layoutService.toggleMobileMenu()"
+        [attr.aria-expanded]="layoutService.isMobileMenuOpen()"
+        aria-controls="mobile-navigation"
+        aria-label="Alternar menú de navegación"
+      >
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+      </button>
+    </div>
+  </div>
+
+  @if (layoutService.isMobileMenuOpen()) {
+    <nav id="mobile-navigation" class="mobile-nav" aria-label="Menú móvil">
+      <ul class="mobile-nav-list">
+        @for (link of navLinks; track link.path) {
+          <li>
+            <a
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: link.exact ?? false }"
+              class="mobile-nav-link"
+              (click)="layoutService.closeMobileMenu()"
+            >
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+  }
+</header>

@@ -1,0 +1,30 @@
+<section class="placeholder-section" aria-labelledby="placeholder-heading">
+  <div class="placeholder-card">
+    <div class="card-header">
+      <span class="status-badge">Vista provisional — Hito 1</span>
+      @if (code()) {
+        <span class="code-badge">{{ code() }}</span>
+      }
+    </div>
+
+    <h1 id="placeholder-heading" class="view-title">{{ title() }}</h1>
+    <p class="view-description">{{ description() }}</p>
+
+    @if (entityId()) {
+      <div class="param-box">
+        <span class="param-label">Parámetro de ruta detectado:</span>
+        <code class="param-value">{{ entityId() }}</code>
+      </div>
+    }
+
+    <div class="milestone-box">
+      <span class="milestone-label">Construcción programada:</span>
+      <span class="milestone-value">{{ milestone() }}</span>
+    </div>
+
+    <div class="card-actions">
+      <a routerLink="/dashboard" class="action-btn primary-btn">Ir al Panel</a>
+      <a routerLink="/curriculum" class="action-btn secondary-btn">Ver Currículo</a>
+    </div>
+  </div>
+</section>

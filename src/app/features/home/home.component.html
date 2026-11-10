@@ -1,0 +1,73 @@
+<div class="home-container">
+  <section class="hero-section" aria-labelledby="hero-title">
+    <div class="badge-row">
+      <span class="sec-badge">AppSec Engineering Workstation</span>
+      <span class="status-pill">Sprint 1 / Hito 1 Activo</span>
+    </div>
+
+    <h1 id="hero-title" class="hero-title">
+      Aprende Seguridad de Aplicaciones <span class="highlight">Construyendo y Auditando</span>
+    </h1>
+
+    <p class="hero-description">
+      Plataforma interactiva de aprendizaje de Application Security orientada a desarrolladores, arquitectos e ingenieros.
+      Arquitectura estática de alto rendimiento desplegada sobre GitHub Pages con Hash Routing.
+    </p>
+
+    <div class="hero-actions">
+      <a routerLink="/dashboard" class="btn btn-primary">Acceder al Panel</a>
+      <a routerLink="/curriculum" class="btn btn-secondary">Explorar Currículo</a>
+    </div>
+  </section>
+
+  <section class="verification-grid-section" aria-labelledby="grid-title">
+    <h2 id="grid-title" class="section-title">Rutas de Navegación del Hito 1</h2>
+    <p class="section-subtitle">
+      Acceso directo a las rutas provisionales configuradas en la arquitectura base:
+    </p>
+
+    <div class="routes-grid">
+      <a routerLink="/dashboard" class="route-card">
+        <span class="route-tag">/dashboard</span>
+        <h3 class="route-card-title">Panel de Aprendizaje</h3>
+        <p class="route-card-desc">Métricas de progreso, XP e insignias del estudiante.</p>
+      </a>
+
+      <a routerLink="/curriculum" class="route-card">
+        <span class="route-tag">/curriculum</span>
+        <h3 class="route-card-title">Currículo</h3>
+        <p class="route-card-desc">Mapa de 14 módulos troncales y 49 lecciones.</p>
+      </a>
+
+      <a [routerLink]="['/modulo', 'm01-owasp-top-10']" class="route-card">
+        <span class="route-tag">/modulo/:id</span>
+        <h3 class="route-card-title">Detalle de Módulo</h3>
+        <p class="route-card-desc">Vista detallada del Módulo 01 (OWASP Top 10).</p>
+      </a>
+
+      <a [routerLink]="['/leccion', '1.1-metodologia-owasp']" class="route-card">
+        <span class="route-tag">/leccion/:id</span>
+        <h3 class="route-card-title">Espacio de Lección</h3>
+        <p class="route-card-desc">Espacio de trabajo estandarizado de 9 secciones.</p>
+      </a>
+
+      <a [routerLink]="['/laboratorio', 'lab-bac-01']" class="route-card">
+        <span class="route-tag">/laboratorio/:id</span>
+        <h3 class="route-card-title">Laboratorio</h3>
+        <p class="route-card-desc">Entorno de experimentación y mitigación en sandbox.</p>
+      </a>
+
+      <a routerLink="/perfil" class="route-card">
+        <span class="route-tag">/perfil</span>
+        <h3 class="route-card-title">Perfil de Ingeniería</h3>
+        <p class="route-card-desc">Ajustes del perfil y exportación de certificados.</p>
+      </a>
+
+      <a routerLink="/ruta-inexistente-test" class="route-card test-card">
+        <span class="route-tag">/404</span>
+        <h3 class="route-card-title">Página No Encontrada</h3>
+        <p class="route-card-desc">Manejo de rutas no reconocidas (Wildcard 404).</p>
+      </a>
+    </div>
+  </section>
+</div>
