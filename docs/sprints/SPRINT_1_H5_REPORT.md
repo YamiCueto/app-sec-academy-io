@@ -294,11 +294,23 @@ En concordancia con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/
 
 En respuesta a la auditoría técnica del Hito 5, se ejecutó una fase formal de remediación y verificación (Hito 5.1):
 
-### 11.1 — Accesibilidad (Remediación de Contraste y Navegación)
-- **Corrección de Contraste en `.version-tag`**: Se actualizó la propiedad `color` de `var(--text-muted)` (`#64748b`) a `var(--text-secondary)` (`#94a3b8`) sobre el fondo `var(--bg-surface-elevated)` (`#1e293b`). La relación de contraste se elevó de **3.07:1 a 5.71:1**, superando el umbral mínimo de **4.5:1** exigido por WCAG 2 AA para texto normal.
-- **Armonización Preventiva en Pie de Página**: Se actualizaron las clases `.footer-subtitle`, `.version-label` y `.copyright` a `var(--text-secondary)`, garantizando una relación de contraste de **6.92:1** sobre `var(--bg-surface)` (`#111827`).
-- **Ajuste Epistémico de Insignia**: La insignia del pie de página se modificó de `WCAG 2.2 AA` a `Meta: WCAG 2.2 AA` en observancia del Mandamiento N° 3 de la Política de Evidencia.
-- **Navegación por Teclado y Enfoque**: Se comprobó el recorrido secuencial por tabulador en todas las rutas auditadas (`#/inicio`, `#/dashboard`, `#/curriculum`, `#/leccion/1.1`, `#/laboratorio/LAB-BAC-01`), verificando que los anillos de enfoque (`--border-focus: #06b6d4`) permanecen visibles sin trampas de foco.
+### 11.1 — Accesibilidad (Remediación Integral de Contraste y Navegación)
+- **Corrección de Contraste en `.version-tag`**: Se actualizó la propiedad `color` a `var(--text-secondary)` (`#94a3b8`) sobre `var(--bg-surface-elevated)` (`#1e293b`). La relación de contraste se elevó de **3.07:1 a 5.71:1** ($\ge 4.5:1$).
+- **Corrección Global de `--text-muted`**: Se armonizó el token semántico `--text-muted` a `#94a3b8`, elevando el contraste de etiquetas secundarias, pistas estadísticas (`.stat-hint`), etiquetas de formulario (`.form-label`) y chips de metadatos en todas las vistas a un ratio superior a **5.2:1**.
+- **Ajuste de Chips de Estándares y Roles**:
+  - `.meta-chip.standard`: ajustado a `#818cf8` (Indigo 400), alcanzando una relación de **6.47:1** sobre fondo oscuro.
+  - `.user-role-badge.attacker`: ajustado a `#fb7185` (Rose 400), alcanzando una relación de **5.44:1** sobre `#1e293b`.
+- **Armonización en Pie de Página**: Se actualizaron las clases `.footer-subtitle`, `.version-label` y `.copyright` a `var(--text-secondary)`, garantizando una relación de contraste de **6.92:1** sobre `var(--bg-surface)` (`#111827`).
+- **Ajuste Epistémico de Insignia**: La insignia del pie de página se modificó a `Meta: WCAG 2.2 AA` en observancia del Mandamiento N° 3 de la Política de Evidencia.
+- **Auditoría Axe-Core 4.10.2 por Ruta (Resultados Verificados)**:
+  - `#/inicio`: **21 reglas superadas, 0 violaciones**.
+  - `#/dashboard`: **22 reglas superadas, 0 violaciones**.
+  - `#/curriculum`: **20 reglas superadas, 0 violaciones**.
+  - `#/leccion/1.1`: **24 reglas superadas, 0 violaciones**.
+  - `#/laboratorio/LAB-BAC-01`: **25 reglas superadas, 0 violaciones**.
+  - **Total de violaciones en rutas auditadas: 0**.
+- **Navegación por Teclado y Enfoque**: Se auditó el recorrido secuencial por tabulador en 21 elementos enfocables en el árbol DOM. Cero trampas de foco detectadas (`noTrap: true`) y estilos de foco visibles (`--border-focus: #06b6d4`).
+- **Declaración Epistémica**: Aunque se alcanzaron cero violaciones en la auditoría automatizada de Axe-Core, la plataforma **NO declara certificación formal integral de WCAG 2.2 AA** hasta completar auditorías manuales con tecnologías de asistencia (NVDA, VoiceOver) en los hitos pedagógicos subsiguientes.
 
 ### 11.2 — Endurecimiento de Content Security Policy (CSP)
 - **Análisis de Código en Línea**: Se identificó que la herramienta Beasties inyectaba un script en línea para carga asíncrona de estilos (`document.querySelectorAll('link[data-beasties-media]')...`).
