@@ -1,0 +1,80 @@
+name: CI/CD Pipeline & GitHub Pages Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  validate-and-test:
+    name: Validar Calidad, Seguridad y Pruebas
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Configurar Node.js (v24.x)
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Instalacion reproducible de dependencias
+        run: npm ci
+
+      - name: Auditoria de seguridad de dependencias (SCA)
+        run: npm audit --audit-level=high
+
+      - name: Verificacion de tipos estrictos (TypeScript)
+        run: npm run type-check
+
+      - name: Auditoria de cero comentarios en codigo fuente
+        run: npm run audit:comments
+
+      - name: Ejecutar pruebas unitarias y de integracion
+        run: npm run test:ci
+
+      - name: Compilacion de produccion con verificacion de presupuestos
+        run: npm run build:prod
+
+      - name: Compilacion optimizada para GitHub Pages con base-href
+        run: npm run build:gh-pages
+
+      - name: Generar 404.html para rutas directas en GitHub Pages
+        run: cp dist/app-sec-academy-io/browser/index.html dist/app-sec-academy-io/browser/404.html
+
+      - name: Cargar artefacto para GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: dist/app-sec-academy-io/browser
+
+  deploy-pages:
+    name: Despliegue Automatizado en GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: validate-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
