@@ -143,6 +143,65 @@ describe('LessonWorkspaceComponent', () => {
     expect(progressStore.totalXP()).toBeGreaterThanOrEqual(100);
   });
 
+  it('debe renderizar la leccion 1.2 vinculada a LAB-BAC-01 con ejemplos Java y Angular', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.2';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.lesson-main-title')?.textContent).toContain(
+      'Broken Access Control'
+    );
+
+    const workspace = fixture.debugElement.children[0].componentInstance as LessonWorkspaceComponent;
+    workspace.goToSection('laboratorio');
+    fixture.detectChanges();
+
+    const labLink = compiled.querySelector('.lab-card-actions a') as HTMLAnchorElement;
+    expect(labLink?.getAttribute('href') ?? labLink?.getAttribute('ng-reflect-router-link')).toContain('LAB-BAC-01');
+  });
+
+  it('debe renderizar la leccion 1.3 con estandares criptograficos y ejemplos tecnicos', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.3';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.lesson-main-title')?.textContent).toContain(
+      'Fallos Criptográficos'
+    );
+
+    const workspace = fixture.debugElement.children[0].componentInstance as LessonWorkspaceComponent;
+    workspace.goToSection('ejemplos');
+    fixture.detectChanges();
+
+    const codeViewers = compiled.querySelectorAll('app-code-viewer');
+    expect(codeViewers.length).toBeGreaterThan(0);
+  });
+
+  it('debe renderizar la leccion 1.4 sobre ASVS y pruebas duales de verificacion', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.4';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.lesson-main-title')?.textContent).toContain(
+      'OWASP ASVS'
+    );
+
+    const workspace = fixture.debugElement.children[0].componentInstance as LessonWorkspaceComponent;
+    workspace.goToSection('evaluacion');
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('app-quiz-runner')).toBeTruthy();
+  });
+
   it('debe renderizar el estado de leccion no encontrada si el identificador no existe', async () => {
     const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
     fixture.componentInstance.lessonId = '99.99-inexistente';

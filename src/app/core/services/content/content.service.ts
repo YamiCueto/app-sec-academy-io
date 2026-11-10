@@ -3,6 +3,8 @@ import { LessonDetail, isValidLessonDetail, ModuleMetadata } from '../../../mode
 import { CURRICULUM_MODULES } from '../../constants/curriculum.constants';
 import { LESSON_1_1_DATA } from './data/lesson-1.1.data';
 import { LESSON_1_2_DATA } from './data/lesson-1.2.data';
+import { LESSON_1_3_DATA } from './data/lesson-1.3.data';
+import { LESSON_1_4_DATA } from './data/lesson-1.4.data';
 
 @Injectable({
   providedIn: 'root'
@@ -11,8 +13,15 @@ export class ContentService {
   private readonly lessonRegistry: Readonly<Record<string, LessonDetail>> = {
     '1.1': LESSON_1_1_DATA,
     '1.1-metodologia-owasp': LESSON_1_1_DATA,
+    '1.1-anatomia-de-debilidades-y-metodologia-owasp': LESSON_1_1_DATA,
     '1.2': LESSON_1_2_DATA,
-    '1.2-broken-access-control': LESSON_1_2_DATA
+    '1.2-broken-access-control': LESSON_1_2_DATA,
+    '1.3': LESSON_1_3_DATA,
+    '1.3-fallos-criptograficos': LESSON_1_3_DATA,
+    '1.3-fallos-criptograficos-y-de-configuracion': LESSON_1_3_DATA,
+    '1.4': LESSON_1_4_DATA,
+    '1.4-owasp-asvs': LESSON_1_4_DATA,
+    '1.4-marco-de-verificacion-owasp-asvs': LESSON_1_4_DATA
   };
 
   getLessonSync(lessonId: string): LessonDetail | null {
@@ -44,13 +53,16 @@ export class ContentService {
           specUrl: 'https://owasp.org'
         }
       ],
-      lessons: m.lessonIds.map((lId, idx) => ({
-        id: lId,
-        title: `Lección ${lId}`,
-        order: idx + 1,
-        estimatedMinutes: 30,
-        difficulty: 'basico'
-      }))
+      lessons: m.lessonIds.map((lId, idx) => {
+        const detail = this.lessonRegistry[lId];
+        return {
+          id: lId,
+          title: detail?.title ?? `Lección ${lId}`,
+          order: detail?.order ?? idx + 1,
+          estimatedMinutes: detail?.estimatedMinutes ?? 30,
+          difficulty: detail?.difficulty ?? 'basico'
+        };
+      })
     }));
   }
 }

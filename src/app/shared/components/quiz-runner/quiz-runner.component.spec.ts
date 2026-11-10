@@ -45,6 +45,30 @@ class TestQuizHostComponent {
         { id: 'opt2_a', text: 'Opción Correcta 2', isCorrect: true, feedback: 'Muy bien' },
         { id: 'opt2_b', text: 'Opción Incorrecta 2', isCorrect: false, feedback: 'Revisa el estándar' }
       ]
+    },
+    {
+      id: 'q3',
+      prompt: '¿Pregunta 3 de prueba?',
+      options: [
+        { id: 'opt3_a', text: 'Opción Correcta 3', isCorrect: true, feedback: 'Muy bien' },
+        { id: 'opt3_b', text: 'Opción Incorrecta 3', isCorrect: false, feedback: 'Revisa el estándar' }
+      ]
+    },
+    {
+      id: 'q4',
+      prompt: '¿Pregunta 4 de prueba?',
+      options: [
+        { id: 'opt4_a', text: 'Opción Correcta 4', isCorrect: true, feedback: 'Muy bien' },
+        { id: 'opt4_b', text: 'Opción Incorrecta 4', isCorrect: false, feedback: 'Revisa el estándar' }
+      ]
+    },
+    {
+      id: 'q5',
+      prompt: '¿Pregunta 5 de prueba?',
+      options: [
+        { id: 'opt5_a', text: 'Opción Correcta 5', isCorrect: true, feedback: 'Muy bien' },
+        { id: 'opt5_b', text: 'Opción Incorrecta 5', isCorrect: false, feedback: 'Revisa el estándar' }
+      ]
     }
   ];
 }
@@ -75,36 +99,40 @@ describe('QuizRunnerComponent', () => {
     expect(submitBtn.disabled).toBe(true);
   });
 
-  it('debe evaluar las respuestas, calcular la puntuacion y registrar el resultado en ProgressStore', () => {
+  it('debe aprobar con 4 de 5 aciertos alcanzando exactamente el umbral del 80%', () => {
     const fixture = TestBed.createComponent(TestQuizHostComponent);
     fixture.detectChanges();
 
     const radios = fixture.nativeElement.querySelectorAll('.option-radio') as NodeListOf<HTMLInputElement>;
     radios[0].click();
     radios[2].click();
+    radios[4].click();
+    radios[6].click();
+    radios[9].click();
     fixture.detectChanges();
 
     const submitBtn = fixture.nativeElement.querySelector('.submit-btn') as HTMLButtonElement;
-    expect(submitBtn.disabled).toBe(false);
-
     submitBtn.click();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.score-pill')?.textContent).toContain('100%');
+    expect(compiled.querySelector('.score-pill')?.textContent).toContain('80%');
     expect(compiled.querySelector('.score-pill')?.textContent).toContain('Aprobada');
     expect(compiled.querySelector('.passed-alert')).toBeTruthy();
     expect(progressStore.completedQuizzesCount()).toBe(1);
-    expect(progressStore.totalXP()).toBeGreaterThanOrEqual(100);
+    expect(progressStore.totalXP()).toBe(100);
   });
 
-  it('debe permitir reintentar barajando opciones cuando no se alcanza el umbral de 80%', () => {
+  it('debe reprobar con 3 de 5 aciertos al quedar en 60% por debajo del umbral del 80%', () => {
     const fixture = TestBed.createComponent(TestQuizHostComponent);
     fixture.detectChanges();
 
     const radios = fixture.nativeElement.querySelectorAll('.option-radio') as NodeListOf<HTMLInputElement>;
-    radios[1].click();
-    radios[3].click();
+    radios[0].click();
+    radios[2].click();
+    radios[4].click();
+    radios[7].click();
+    radios[9].click();
     fixture.detectChanges();
 
     const submitBtn = fixture.nativeElement.querySelector('.submit-btn') as HTMLButtonElement;
@@ -112,7 +140,8 @@ describe('QuizRunnerComponent', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.score-pill')?.textContent).toContain('0%');
+    expect(compiled.querySelector('.score-pill')?.textContent).toContain('60%');
+    expect(compiled.querySelector('.score-pill')?.textContent).toContain('No superada');
     expect(compiled.querySelector('.retry-btn')).toBeTruthy();
 
     const retryBtn = compiled.querySelector('.retry-btn') as HTMLButtonElement;
@@ -120,5 +149,27 @@ describe('QuizRunnerComponent', () => {
     fixture.detectChanges();
 
     expect(compiled.querySelector('.submit-btn')).toBeTruthy();
+  });
+
+  it('no debe duplicar XP al reintentar y aprobar nuevamente un quiz ya aprobado', () => {
+    const fixture = TestBed.createComponent(TestQuizHostComponent);
+    fixture.detectChanges();
+
+    const radios = fixture.nativeElement.querySelectorAll('.option-radio') as NodeListOf<HTMLInputElement>;
+    radios[0].click();
+    radios[2].click();
+    radios[4].click();
+    radios[6].click();
+    radios[8].click();
+    fixture.detectChanges();
+
+    const submitBtn = fixture.nativeElement.querySelector('.submit-btn') as HTMLButtonElement;
+    submitBtn.click();
+    fixture.detectChanges();
+
+    expect(progressStore.totalXP()).toBe(100);
+
+    progressStore.recordQuizResult('1.1', 100, true);
+    expect(progressStore.totalXP()).toBe(100);
   });
 });

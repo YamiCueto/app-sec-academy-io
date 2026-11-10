@@ -215,7 +215,11 @@
                   <article class="content-block">
                     <div class="lab-mission-card">
                       <div class="mission-header">
-                        <span class="mission-tag">Laboratorio Confinado</span>
+                        @if (current.sections.lab.labId === 'LAB-BAC-01') {
+                          <span class="mission-tag lab-executable">Laboratorio Interactivo Ejecutable</span>
+                        } @else {
+                          <span class="mission-tag demo-conceptual">Demostración Conceptual / Simulación Guiada</span>
+                        }
                         <h3 class="mission-title">{{ current.sections.lab.title }}</h3>
                       </div>
                       <p class="mission-prompt">{{ current.sections.lab.missionPrompt }}</p>
@@ -230,9 +234,16 @@
                       </div>
 
                       <div class="lab-card-actions">
-                        <a [routerLink]="['/laboratorio', current.sections.lab.labId]" class="btn btn-primary">
-                          Iniciar Laboratorio en Sandbox
-                        </a>
+                        @if (current.sections.lab.labId === 'LAB-BAC-01') {
+                          <a [routerLink]="['/laboratorio', current.sections.lab.labId]" class="btn btn-primary">
+                            Iniciar Laboratorio en Sandbox
+                          </a>
+                        } @else {
+                          <div class="activity-type-banner">
+                            <span class="activity-badge">Demostración Guiada</span>
+                            <span class="activity-note">Esta actividad constituye un ejercicio de análisis y demostración conceptual guiada. El laboratorio ejecutable confinado en Web Worker correspondiente está programado para fases de especialización técnica.</span>
+                          </div>
+                        }
                       </div>
                     </div>
                   </article>
