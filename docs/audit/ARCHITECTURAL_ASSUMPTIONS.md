@@ -14,11 +14,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: La adopción de `withHashLocation()` en Angular Router garantiza que todas las rutas internas (`/#/leccion/...`) se resuelvan en el cliente sin generar errores HTTP 404 al refrescar la página (`F5`) o acceder directamente desde enlaces externos en el subdirectorio de GitHub Pages (`/app-sec-academy-io/`).
 - **Fundamento Técnico**: El servidor web estático de GitHub Pages solo procesa la parte de la URL anterior al fragmento `#`, sirviendo siempre `index.html` con código 200 OK. El fragmento hash es interpretado exclusivamente por el motor de enrutamiento en JavaScript en el navegador.
 - **Riesgo**: Que rutas anidadas complejas o redirecciones internas generen pérdida de estado o problemas con herramientas de análisis que no interpreten correctamente los fragmentos hash.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Despliegue de un prototipo mínimo en GitHub Pages, accediendo a tres rutas profundas con recarga forzada (`F5`) y comprobación de código de respuesta HTTP.
+- **Estado Actual**: **VERIFICADO**.
+- **Prueba de Validación Ejecutada**: Despliegue en GitHub Pages (`https://yamicueto.github.io/app-sec-academy-io/`), navegación automática por rutas hash (`#/inicio`, `#/dashboard`, `#/curriculum`, `#/leccion/1.1`, `#/laboratorio/LAB-BAC-01`) y recarga directa forzada (`Page.reload`) sobre `#/laboratorio/LAB-BAC-01` en Google Chrome Headless 157.0.8103.39 vía CDP.
 - **Criterio Objetivo de Aceptación**: Cero errores 404 registrados en la pestaña de red de Chrome DevTools al recargar cualquier ruta profunda desplegada en GitHub Pages.
-- **Sprint de Validación**: **Sprint 1**.
-- **Evidencia Requerida**: Captura de log de red y test automatizado de Playwright navegando y recargando rutas en vivo.
+- **Sprint de Validación**: **Sprint 1 (Hito 5)**.
+- **Evidencia Registrada**: Archivo `scratch/validation_results.json`. Cero respuestas 404 en navegación y recarga. Fallback SPA `404.html` presente con idéntico hash SHA al `index.html`.
 
 ---
 
@@ -26,11 +26,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: El uso exclusivo de Angular Signals (`signal`, `computed`, `effect`) combinado con `LocalStorage` es suficiente para gestionar el estado reactivo global de progreso, XP e insignias sin requerir librerías externas de estado (NgRx, Akita) ni introducir desincronizaciones de UI.
 - **Fundamento Técnico**: Los efectos reactivos (`effect()`) ejecutan automáticamente la sincronización al almacenamiento local ante cambios en las señales de estado con granularidad fina.
 - **Riesgo**: Que los efectos reactivos introduzcan ciclos infinitos de actualización (*glitches*) o que el almacenamiento local alcance su límite de cuota (típicamente 5 MB a 10 MB).
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Suite de pruebas unitarias que simule 50 mutaciones consecutivas de progreso y verifique que `localStorage` contiene el estado serializado canónico sin inconsistencias.
+- **Estado Actual**: **VERIFICADO**.
+- **Prueba de Validación Ejecutada**: Suite de 40 pruebas automatizadas en Vitest sobre `StorageService` y `ProgressStore`. Verificación empírica en el despliegue de GitHub Pages: tras resolver `LAB-BAC-01` y recargar la página (`Page.reload`), el estado en `localStorage` (`appsec_academy_progress_v1`) retuvo los 100 XP y el récord del laboratorio aprobado, reflejándose reactivamente en el badge de cabecera.
 - **Criterio Objetivo de Aceptación**: Tiempo de actualización de UI $< 16$ ms por evento; cero excepciones `QuotaExceededError` con el dataset completo de 49 lecciones.
-- **Sprint de Validación**: **Sprint 1**.
-- **Evidencia Requerida**: Suite de tests unitarios ejecutados con Vitest y reporte de cobertura de `ProgressStore`.
+- **Sprint de Validación**: **Sprint 1 (Hitos 2 y 5)**.
+- **Evidencia Registrada**: Tests unitarios en CI/CD y trazabilidad en `scratch/validation_results.json`.
 
 ---
 
@@ -38,11 +38,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: La aplicación completa (shell, estilos base, enrutador, componentes visuales e infraestructura de renderizado) puede compilarse para producción con un tamaño inicial transferido inferior a 250 KB y un tiempo de carga LCP inferior a 2.0 segundos en conexiones móviles 4G simuladas.
 - **Fundamento Técnico**: Uso de Angular Standalone, esbuild, compresión Brotli/Gzip, purga estricta de CSS y exclusión de librerías pesadas como Monaco Editor.
 - **Riesgo**: Que librerías de resaltado sintáctico, renderizadores de Markdown o diagramadores Mermaid inflen el bundle inicial.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Ejecución de `ng build --configuration=production` auditando el reporte de tamaño de chunks (`stats.json`) y auditoría con Lighthouse CLI en perfil móvil simulado.
+- **Estado Actual**: **VALIDADO PARCIALMENTE / PENDIENTE DE VALIDACIÓN COMPLETA (LCP FORMAL Y LIGHTHOUSE)**.
+- **Prueba de Validación Ejecutada**: Compilación de producción en pipeline CI/CD y medición en despliegue real en GitHub Pages vía Chrome Headless. Resultados empíricos: HTML ~2.5 kB, `styles.css` 2.86 kB (gzip transferido) / 18.00 kB (bruto), `main.js` 66.69 kB (gzip transferido) / 246.57 kB (bruto). Paquete inicial transferido: ~69.55 kB ($\ll 250$ kB). TTFB: 27 ms. First Contentful Paint (FCP): 64 ms. No obstante, el LCP de campo y el puntaje integral de Lighthouse permanecen en evaluación continua y no se dan por cerrados hasta contar con mediciones completas de laboratorio.
 - **Criterio Objetivo de Aceptación**: Bundle inicial comprimido $\le 250$ KB; Score Lighthouse Performance $\ge 90$; LCP $< 2.0$ s.
-- **Sprint de Validación**: **Sprint 1** (medición base) y **Sprint 2** (medición con labs).
-- **Evidencia Requerida**: Reporte de build de Angular CLI con pesos de artefactos y reporte HTML de Lighthouse.
+- **Sprint de Validación**: **Sprint 1 (Hito 5 y 5.1)**.
+- **Evidencia Registrada**: Métricas de `performance.getEntriesByType('resource')` en `scratch/validation_results.json`.
 
 ---
 
@@ -50,11 +50,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: La política CSP estricta inyectada en `<meta>` con directivas `script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:;` permite compilar y ejecutar parsers en WebAssembly (SQLite Wasm, OPA Rego) y crear Web Workers desde blobs en memoria sin ser bloqueados por el navegador.
 - **Fundamento Técnico**: Las especificaciones W3C CSP Nivel 3 reconocen `'wasm-unsafe-eval'` para compilación de módulos Wasm y `worker-src ... blob:` para workers generados dinámicamente.
 - **Riesgo**: Que implementaciones específicas de navegadores (ej. Safari WebKit en iOS) apliquen interpretaciones dispares que bloqueen la creación de workers o módulos Wasm desde etiquetas meta.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: PoC en navegador que compile un módulo Wasm mínimo y lance un Web Worker desde un Blob bajo la cabecera CSP definida en `index.html`.
+- **Estado Actual**: **VALIDADO (Web Workers en Producción) / PENDIENTE DE VALIDACIÓN (WebAssembly)**.
+- **Prueba de Validación Ejecutada**: Inyección de meta CSP en `index.html` desplegado en GitHub Pages. Carga y ejecución del Web Worker `worker-RBZIIOM4.js` bajo aislamiento estricto. Registro de eventos de consola CDP: 0 errores de `SecurityError` y 0 bloqueos de CSP. WebAssembly se mantiene pendiente para los laboratorios del Sprint 2.
 - **Criterio Objetivo de Aceptación**: Cero violaciones reportadas en la consola de seguridad de Chrome, Firefox y WebKit/Safari.
-- **Sprint de Validación**: **Sprint 1** (para Worker) y **Sprint 2** (para Wasm).
-- **Evidencia Requerida**: Test E2E de Playwright inspeccionando eventos `page.on('console')` para confirmar ausencia de `SecurityError`.
+- **Sprint de Validación**: **Sprint 1 (Web Worker)** y **Sprint 2 (Wasm)**.
+- **Evidencia Registrada**: Logs de consola en `scratch/validation_results.json`.
 
 ---
 
@@ -110,11 +110,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: Los 12 laboratorios troncales (Broken Access Control, SQLi, SSRF, JWT, CSP, etc.) pueden representarse de forma fidedigna y pedagógicamente rigurosa utilizando parsers en memoria, ASTs y simuladores de red en TypeScript sin un servidor de backend real.
 - **Fundamento Técnico**: La seguridad de aplicaciones evalúa contratos de datos, validación sintáctica, cabeceras y control de flujo, conceptos que pueden modelarse con alta fidelidad mediante librerías de análisis sintáctico y Web Crypto API en el navegador.
 - **Riesgo**: Que ejercicios complejos (ej. SSRF contra servicios de nube reales o ataques de temporización criptográfica) pierdan realismo al depender de stubs simulados.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Construcción y prueba del laboratorio piloto `LAB-BAC-01` en el Sprint 1 evaluando la experiencia de usuario y la efectividad de las aserciones.
+- **Estado Actual**: **VERIFICADO (para LAB-BAC-01) / PENDIENTE DE VALIDACIÓN (para los 11 laboratorios restantes)**.
+- **Prueba de Validación Ejecutada**: Implementación y ejecución en vivo de `LAB-BAC-01` en GitHub Pages. Simulación HTTP vulnerable (HTTP 200 con fuga de datos clínicos ajenos entre Eve y Alice), simulación HTTP remediada (HTTP 403 Forbidden y Deny by Default) y ejecución de batería completa de 5 aserciones en Web Worker con duración de 1 ms, acreditando 100 XP en el `ProgressStore`.
 - **Criterio Objetivo de Aceptación**: El estudiante puede explotar la vulnerabilidad en el código inicial y remediarla exitosamente en el editor, recibiendo aserciones automáticas en $< 20$ ms.
-- **Sprint de Validación**: **Sprint 1**.
-- **Evidencia Requerida**: Reporte de ejecución del laboratorio `LAB-BAC-01` con suite de pruebas pasando.
+- **Sprint de Validación**: **Sprint 1 (Hitos 4 y 5)**.
+- **Evidencia Registrada**: Resultados de ejecución en `scratch/validation_results.json` y tests de `sandbox.service.spec.ts`.
 
 ---
 
@@ -122,11 +122,11 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: La interfaz y el editor de código pueden alcanzar conformidad con las pautas de accesibilidad WCAG 2.2 AA (contraste $\ge 4.5:1$, navegación 100% por teclado, roles ARIA y compatibilidad con lectores de pantalla).
 - **Fundamento Técnico**: El sistema de diseño se construye con tokens CSS semánticos de alto contraste y componentes HTML nativos accesibles (`<button>`, `<main>`, `<nav>`, `<input type="radio">`).
 - **Riesgo**: Que componentes complejos (árboles de navegación o editores de código en línea) presenten trampas de teclado (*keyboard traps*) o nombres accesibles ausentes.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Auditoría automatizada con `@axe-core/playwright` sobre todas las rutas del Sprint 1 y prueba manual de navegación por tabulación secuencial.
+- **Estado Actual**: **VALIDADO PARCIALMENTE / NO CONFORME EN SU TOTALIDAD (1 HALLAZGO SERIO DETECTADO)**.
+- **Prueba de Validación Ejecutada**: Auditoría automatizada con el motor Axe-Core 4.10.2 inyectado sobre el despliegue real en GitHub Pages evaluando etiquetas `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`. Resultados: 37 reglas superadas con éxito, 0 violaciones críticas, 1 violación seria: regla `color-contrast` en la clase `.version-tag` (12 nodos afectados). De acuerdo con la Política de Evidencia, la plataforma **NO** puede certificarse WCAG 2.2 AA hasta subsanar este hallazgo y auditar lectores de pantalla.
 - **Criterio Objetivo de Aceptación**: Cero violaciones críticas o serias en el reporte Axe; foco visible en todos los controles interactivos.
-- **Sprint de Validación**: **Sprint 1**.
-- **Evidencia Requerida**: Reporte JSON de auditoría Axe-Core en el pipeline de CI/CD.
+- **Sprint de Validación**: **Sprint 1 (Hito 5)**.
+- **Evidencia Registrada**: Objeto `axeResults` en `scratch/validation_results.json`.
 
 ---
 
@@ -134,8 +134,8 @@ De acuerdo con la [Política de Evidencia](file:///c:/Users/YAMI/Documents/proje
 - **Descripción**: La estación de trabajo de ingeniería puede utilizarse ergonómicamente en pantallas móviles pequeñas (desde 360 px de ancho) garantizando cero desbordamiento horizontal y áreas de toque mínimas de 44x44 px.
 - **Fundamento Técnico**: Maquetación fluida mediante CSS Flexbox, Grid, variables `clamp()` y adaptación de vistas duales a pestañas apiladas en pantallas estrechas.
 - **Riesgo**: Que bloques de código o diagramas SVG desborden el ancho de la pantalla forzando scroll horizontal indeseado de la página completa.
-- **Estado Actual**: **ANALIZADO / PENDIENTE DE VALIDACIÓN**.
-- **Prueba de Validación Necesaria**: Test E2E de Playwright evaluando `scrollWidth <= clientWidth` en viewports de 360px y 390px.
+- **Estado Actual**: **VERIFICADO**.
+- **Prueba de Validación Ejecutada**: Emulación de viewport móvil de 360x640 px mediante Chrome DevTools Protocol (`Emulation.setDeviceMetricsOverride`). Lectura directa de métricas de renderizado: `document.documentElement.scrollWidth = 360`, `clientWidth = 360`, `hasOverflow = false`.
 - **Criterio Objetivo de Aceptación**: Aserción `scrollWidth <= clientWidth` evaluada como verdadera en todas las rutas auditadas.
-- **Sprint de Validación**: **Sprint 1**.
-- **Evidencia Requerida**: Log de ejecución del test de Playwright en resoluciones móviles.
+- **Sprint de Validación**: **Sprint 1 (Hito 5)**.
+- **Evidencia Registrada**: Objeto `mobileMetrics` en `scratch/validation_results.json`.
