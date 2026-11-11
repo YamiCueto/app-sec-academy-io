@@ -137,4 +137,28 @@ describe('StorageService', () => {
       completedLessons: 'not-an-array'
     })).toBe(false);
   });
+
+  it('debe aceptar estados legados sin lastActiveLessonId y rechazar valores no validos', () => {
+    const legacyValidState = service.createInitialState();
+    delete (legacyValidState as unknown as Record<string, unknown>)['lastActiveLessonId'];
+    expect(service.isValidProgressState(legacyValidState)).toBe(true);
+
+    const withValidLastActive = {
+      ...legacyValidState,
+      lastActiveLessonId: '1.2'
+    };
+    expect(service.isValidProgressState(withValidLastActive)).toBe(true);
+
+    const withInvalidTypeLastActive = {
+      ...legacyValidState,
+      lastActiveLessonId: 123
+    };
+    expect(service.isValidProgressState(withInvalidTypeLastActive)).toBe(false);
+
+    const withEmptyLastActive = {
+      ...legacyValidState,
+      lastActiveLessonId: '   '
+    };
+    expect(service.isValidProgressState(withEmptyLastActive)).toBe(false);
+  });
 });

@@ -1,0 +1,138 @@
+<div class="curriculum-container">
+  <header class="curriculum-header">
+    <div class="header-badges">
+      <span class="badge badge-sec">Currículo Profesional</span>
+      <span class="badge badge-success">Módulo 01 Disponible</span>
+    </div>
+
+    <h1 class="curriculum-title">Catálogo Curricular de Especialización AppSec</h1>
+    <p class="curriculum-description">
+      Ruta integral de formación en seguridad de aplicaciones estructurada en 14 módulos troncales y 49 lecciones interactivas.
+      Diseñada según estándares internacionales OWASP, NIST, ISO/IEC y SEI CERT.
+    </p>
+
+    <div class="curriculum-stats-bar" aria-label="Resumen de estadísticas del currículo">
+      <div class="stat-pill">
+        <span class="stat-num">14</span>
+        <span class="stat-txt">Módulos Troncales</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">49</span>
+        <span class="stat-txt">Lecciones Prácticas</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">3</span>
+        <span class="stat-txt">Niveles de Madurez</span>
+      </div>
+      <div class="stat-pill highlight">
+        <span class="stat-num">{{ progressStore.completedLessonsCount() }} / 4</span>
+        <span class="stat-txt">Lecciones M01 Completadas</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="curriculum-blocks" aria-label="Bloques curriculares">
+    @for (block of blocks; track block.id) {
+      <section class="block-section" [attr.aria-labelledby]="'block-' + block.id">
+        <div class="block-header">
+          <div class="block-meta">
+            <span class="block-code">{{ block.code }}</span>
+            <h2 [id]="'block-' + block.id" class="block-title">{{ block.title }}</h2>
+          </div>
+          <p class="block-description">{{ block.description }}</p>
+        </div>
+
+        <div class="modules-grid">
+          @for (module of getModulesForBlock(block.id); track module.id) {
+            <article
+              class="module-card"
+              [class.available]="module.isAvailable"
+              [class.upcoming]="!module.isAvailable"
+              [attr.aria-labelledby]="'module-title-' + module.id"
+            >
+              <div class="card-top-bar">
+                <span class="module-code-badge">{{ module.code }}</span>
+                @if (module.isAvailable) {
+                  <span class="status-badge available-badge">Disponible</span>
+                } @else {
+                  <span class="status-badge upcoming-badge">Próximamente</span>
+                }
+              </div>
+
+              <div class="card-main">
+                <h3 [id]="'module-title-' + module.id" class="module-title">{{ module.title }}</h3>
+                <p class="module-description">{{ module.description }}</p>
+
+                <div class="module-tags">
+                  <span class="tag tag-difficulty">{{ module.difficulty }}</span>
+                  <span class="tag tag-time">⏱ {{ module.estimatedMinutes }} min</span>
+                  <span class="tag tag-count">{{ module.lessonCount }} lecciones</span>
+                </div>
+
+                <div class="standards-row">
+                  @for (std of module.standards; track std.name) {
+                    <span class="standard-pill">{{ std.name }}</span>
+                  }
+                </div>
+
+                @if (module.isAvailable) {
+                  <div class="module-progress-box">
+                    <div class="progress-info">
+                      <span class="progress-text">
+                        {{ getCompletedCountForModule(module) }} de {{ module.lessons.length }} lecciones completadas
+                      </span>
+                      <span class="progress-pct">{{ getModuleProgressPercent(module) }}%</span>
+                    </div>
+                    <div class="progress-track" aria-hidden="true">
+                      <div class="progress-fill" [style.width.%]="getModuleProgressPercent(module)"></div>
+                    </div>
+
+                    <div class="quick-lessons-list" aria-label="Acceso rápido a lecciones">
+                      @for (lesson of module.lessons; track lesson.id) {
+                        <a
+                          [routerLink]="['/leccion', lesson.id]"
+                          class="quick-lesson-item"
+                          [class.completed]="isLessonCompleted(lesson.id)"
+                        >
+                          <span class="quick-lesson-id">{{ lesson.id }}</span>
+                          <span class="quick-lesson-title">{{ lesson.title }}</span>
+                          @if (isLessonCompleted(lesson.id)) {
+                            <span class="check-pill" aria-label="Completada">✓</span>
+                          } @else {
+                            <span class="arrow-pill" aria-label="Ir a lección">→</span>
+                          }
+                        </a>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <div class="upcoming-notice">
+                    <span class="notice-icon" aria-hidden="true">🔒</span>
+                    <p class="notice-text">
+                      Contenido curricular planificado. Disponible en las próximas fases del desarrollo.
+                    </p>
+                  </div>
+                }
+              </div>
+
+              <footer class="card-footer">
+                <a
+                  [routerLink]="['/modulo', module.id]"
+                  class="btn"
+                  [class.btn-primary]="module.isAvailable"
+                  [class.btn-secondary]="!module.isAvailable"
+                >
+                  @if (module.isAvailable) {
+                    Ver Módulo {{ module.code }} →
+                  } @else {
+                    Ver Plan del Módulo {{ module.code }} →
+                  }
+                </a>
+              </footer>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </main>
+</div>

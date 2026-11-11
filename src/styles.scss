@@ -225,8 +225,8 @@ a:hover {
 
 .warning-badge {
   background-color: rgba(244, 63, 94, 0.15);
-  color: var(--sec-critical);
-  border: 1px solid var(--sec-critical);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   padding: 4px 8px;

@@ -30,6 +30,7 @@
         </nav>
 
         <div class="header-status">
+          <a [routerLink]="['/modulo', current.moduleId]" class="header-back-link">← Volver al Módulo</a>
           @if (isLessonDoneInStore()) {
             <span class="completion-pill completed">✓ Aprobada</span>
           } @else {
@@ -347,6 +348,51 @@
                 </button>
               }
             </footer>
+
+            <div class="inter-lesson-nav-bar" aria-label="Navegación entre lecciones">
+              <div class="inter-nav-row">
+                @if (prevLessonNav().prevLessonId) {
+                  <a
+                    [routerLink]="['/leccion', prevLessonNav().prevLessonId]"
+                    class="btn btn-secondary inter-lesson-btn prev-lesson-btn"
+                  >
+                    ← Lección Anterior ({{ prevLessonNav().prevLessonId }})
+                  </a>
+                } @else {
+                  <span class="nav-placeholder" aria-hidden="true"></span>
+                }
+
+                <a [routerLink]="['/modulo', current.moduleId]" class="btn btn-outline inter-lesson-btn back-module-link">
+                  Volver al Módulo {{ current.moduleId.toUpperCase() }}
+                </a>
+
+                @if (nextLessonNav().nextLessonId && nextLessonNav().isAvailable) {
+                  <a
+                    [routerLink]="['/leccion', nextLessonNav().nextLessonId]"
+                    class="btn btn-primary inter-lesson-btn next-lesson-btn"
+                  >
+                    Siguiente Lección ({{ nextLessonNav().nextLessonId }}) →
+                  </a>
+                }
+              </div>
+
+              @if (nextLessonNav().nextLessonId && !nextLessonNav().isAvailable) {
+                <aside class="next-module-notice-card" role="region" aria-label="Aviso de lección en desarrollo">
+                  <div class="notice-icon-col" aria-hidden="true">🏁</div>
+                  <div class="notice-content-col">
+                    <h3 class="notice-heading">Has alcanzado el límite de lecciones activas del Módulo 01</h3>
+                    <p class="notice-body">
+                      La siguiente lección planificada en el currículo oficial (<strong>Lección {{ nextLessonNav().nextLessonId }}: {{ nextLessonNav().nextLessonTitle }}</strong>) corresponde al siguiente módulo y se encuentra actualmente en desarrollo.
+                    </p>
+                    <div class="notice-actions">
+                      <a [routerLink]="['/modulo', current.moduleId]" class="btn btn-primary-notice">Volver al Módulo 01</a>
+                      <a routerLink="/curriculum" class="btn btn-secondary-notice">Explorar Catálogo Curricular</a>
+                      <a routerLink="/dashboard" class="btn btn-secondary-notice">Ir al Panel</a>
+                    </div>
+                  </div>
+                </aside>
+              }
+            </div>
           </div>
         </main>
       </div>

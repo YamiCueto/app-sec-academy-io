@@ -161,4 +161,73 @@ describe('ProgressStore', () => {
     expect(determineEngineeringRank(7001)).toBe('Senior AppSec Specialist');
     expect(determineEngineeringRank(11001)).toBe('Principal AppSec Architect');
   });
+
+  it('debe cargar limpiamente un estado legado del Sprint 1 sin lastActiveLessonId', () => {
+    const legacyState = {
+      schemaVersion: '1.0.0',
+      alias: 'Cadete Sprint 1',
+      createdAt: '2026-11-01T10:00:00.000Z',
+      updatedAt: '2026-11-01T11:00:00.000Z',
+      totalXP: 450,
+      completedLessons: ['1.1', '1.2'],
+      lessonRecords: {
+        '1.1': { completedAt: '2026-11-01T10:30:00.000Z', quizScore: 100, quizAttempts: 1, quizPassed: true, labPassed: false, labScore: 0, hintsUsed: 0 },
+        '1.2': { completedAt: '2026-11-01T11:00:00.000Z', quizScore: 100, quizAttempts: 1, quizPassed: true, labPassed: true, labScore: 100, hintsUsed: 0 }
+      },
+      labRecords: {
+        'LAB-BAC-01': { labId: 'LAB-BAC-01', passed: true, score: 100, hintsUsed: 0, completedAt: '2026-11-01T11:00:00.000Z' }
+      },
+      preferences: { theme: 'dark', soundEnabled: false, highContrast: false }
+    };
+
+    mockDriver.store.set('appsec_academy_progress_v1', JSON.stringify(legacyState));
+
+    const reloadedStore = TestBed.runInInjectionContext(() => {
+      const storageService = TestBed.inject(StorageService);
+      return new ProgressStore();
+    });
+
+    expect(reloadedStore.totalXP()).toBe(450);
+    expect(reloadedStore.completedLessons()).toEqual(['1.1', '1.2']);
+    expect(reloadedStore.lastActiveLessonId()).toBeNull();
+  });
+
+  it('debe persistir lastActiveLessonId y recuperarlo consistentemente tras recargar', () => {
+    store.setLastActiveLesson('1.3');
+    expect(store.lastActiveLessonId()).toBe('1.3');
+
+    const reloadedStore = TestBed.runInInjectionContext(() => {
+      return new ProgressStore();
+    });
+
+    expect(reloadedStore.lastActiveLessonId()).toBe('1.3');
+  });
+
+  it('debe ignorar identificadores invalidos o vacios sin corromper el estado', () => {
+    store.recordLessonCompletion('1.1', 100);
+    const prevXP = store.totalXP();
+    const prevLessons = store.completedLessons();
+
+    store.setLastActiveLesson('');
+    store.setLastActiveLesson('   ');
+    store.recordLessonCompletion('', 50);
+    store.recordLessonCompletion('   ', 50);
+
+    expect(store.totalXP()).toBe(prevXP);
+    expect(store.completedLessons()).toEqual(prevLessons);
+  });
+
+  it('debe garantizar idempotencia de recompensas y evitar duplicacion de XP en lecciones y cuestionarios', () => {
+    store.recordLessonCompletion('1.1', 100);
+    expect(store.totalXP()).toBe(100);
+
+    store.recordLessonCompletion('1.1', 100);
+    expect(store.totalXP()).toBe(100);
+
+    store.recordQuizResult('1.1', 100, true);
+    expect(store.totalXP()).toBe(200);
+
+    store.recordQuizResult('1.1', 100, true);
+    expect(store.totalXP()).toBe(200);
+  });
 });

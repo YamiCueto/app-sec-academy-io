@@ -44,11 +44,27 @@ export class LessonWorkspaceComponent {
   });
 
   protected readonly isLessonDoneInStore = computed(() => {
-    const currentLesson = this.lesson();
-    if (!currentLesson) {
+    const current = this.lesson();
+    if (!current) {
       return false;
     }
-    return this.progressStore.completedLessons().includes(currentLesson.id);
+    return this.progressStore.completedLessons().includes(current.id);
+  });
+
+  protected readonly prevLessonNav = computed(() => {
+    const current = this.lesson();
+    if (!current) {
+      return { prevLessonId: null, prevLessonTitle: null };
+    }
+    return this.contentService.getPrevLessonNavigation(current.id);
+  });
+
+  protected readonly nextLessonNav = computed(() => {
+    const current = this.lesson();
+    if (!current) {
+      return { nextLessonId: null, isAvailable: false, nextLessonTitle: null };
+    }
+    return this.contentService.getNextLessonNavigation(current.id);
   });
 
   constructor() {
@@ -98,6 +114,7 @@ export class LessonWorkspaceComponent {
       this.activeSectionId.set('introduccion');
       this.visitedSections.set(new Set(['introduccion']));
       this.isExplicitlyCompleted.set(false);
+      this.progressStore.setLastActiveLesson(syncResult.id);
       return;
     }
     this.isLoading.set(false);

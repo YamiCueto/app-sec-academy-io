@@ -5,9 +5,18 @@
       <p class="not-found-desc">
         El identificador "{{ id() }}" no corresponde a un laboratorio activo en el catalogo actual.
       </p>
-      <a routerLink="/curriculum" class="btn btn-primary">Volver al catalogo</a>
+      <div class="not-found-actions">
+        <a routerLink="/leccion/1.2" class="btn btn-secondary">Volver a la Lección 1.2</a>
+        <a routerLink="/curriculum" class="btn btn-primary">Volver al catalogo</a>
+      </div>
     </div>
   } @else {
+    <nav class="lab-navigation-bar" aria-label="Navegación contextual del laboratorio">
+      <a routerLink="/leccion/1.2" class="btn btn-secondary back-lesson-btn">← Volver a la Lección 1.2</a>
+      <a [routerLink]="['/modulo', 'm01']" class="btn btn-ghost">Módulo 01</a>
+      <a routerLink="/curriculum" class="btn btn-ghost">Catálogo Curricular</a>
+    </nav>
+
     <header class="lab-header">
       <div class="header-badges">
         <span class="badge badge-primary">{{ definition()?.code }}</span>

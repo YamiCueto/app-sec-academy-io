@@ -9,7 +9,7 @@ import { PlaceholderViewComponent } from '../../shared/components/placeholder-vi
       title="Perfil de Ingeniería y Ajustes"
       code="PROFILE"
       description="Gestión local del perfil de ingeniería, configuración de accesibilidad, preferencias visuales, exportación de copias de seguridad criptográficas (SHA-256) y reinicio de progreso."
-      milestone="Sprint 1 / Hito 2 & Fase Posterior"
+      milestone="Próximamente"
     />
   `
 })

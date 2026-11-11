@@ -104,4 +104,51 @@ describe('DashboardComponent (Integración Reactiva)', () => {
     expect(compiled.querySelector('.storage-warning-banner')).toBeTruthy();
     expect(compiled.querySelector('.warning-message')?.textContent).toContain('no está disponible');
   });
+
+  it('debe sugerir comenzar la Leccion 1.1 en la tarjeta Continuar Aprendizaje para un estudiante nuevo', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.continue-card');
+    expect(card).toBeTruthy();
+    expect(card?.textContent).toContain('Comienza Aquí');
+    expect(card?.textContent).toContain('Iniciar Lección 1.1');
+  });
+
+  it('debe sugerir reanudar la leccion en curso cuando lastActiveLessonId no esta completada', () => {
+    progressStore.setLastActiveLesson('1.2');
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.continue-card');
+    expect(card?.textContent).toContain('Lección en Curso');
+    expect(card?.textContent).toContain('Reanudar Lección 1.2');
+  });
+
+  it('debe sugerir la siguiente leccion disponible cuando existen lecciones previas completadas', () => {
+    progressStore.recordLessonCompletion('1.1', 100);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.continue-card');
+    expect(card?.textContent).toContain('Siguiente Paso Sugerido');
+    expect(card?.textContent).toContain('Iniciar Lección 1.2');
+  });
+
+  it('debe mostrar estado de felicitacion y modulo 100% completado cuando todas las lecciones estan aprobadas', () => {
+    progressStore.recordLessonCompletion('1.1', 100);
+    progressStore.recordLessonCompletion('1.2', 100);
+    progressStore.recordLessonCompletion('1.3', 100);
+    progressStore.recordLessonCompletion('1.4', 100);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.continue-card');
+    expect(card?.textContent).toContain('¡Módulo 01 Completado al 100%!');
+    expect(card?.textContent).toContain('Explorar Catálogo Curricular');
+  });
 });

@@ -1,0 +1,153 @@
+<div class="module-detail-container">
+  @if (!module()) {
+    <section class="module-not-found-card lesson-not-found-card" aria-labelledby="not-found-heading">
+      <span class="warning-badge">Módulo no disponible</span>
+      <h1 id="not-found-heading" class="not-found-title">Módulo no encontrado</h1>
+      <p class="not-found-message">
+        El identificador <code>{{ id() }}</code> no corresponde a ningún módulo del currículo oficial de AppSec Academy.
+      </p>
+      <div class="not-found-actions">
+        <a routerLink="/curriculum" class="btn btn-primary">Volver al Catálogo Curricular</a>
+        <a routerLink="/dashboard" class="btn btn-secondary">Ir al Panel</a>
+      </div>
+    </section>
+  } @else {
+    @let current = module()!;
+
+    <nav class="breadcrumb-bar" aria-label="Ruta de navegación">
+      <a routerLink="/curriculum" class="breadcrumb-link">Currículo</a>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current">Módulo {{ current.code }}</span>
+    </nav>
+
+    <header class="module-header">
+      <div class="header-badges">
+        <span class="badge badge-code">{{ current.code }}</span>
+        <span class="badge badge-block">{{ current.blockTitle }}</span>
+        @if (current.isAvailable) {
+          <span class="badge badge-success">Módulo Activo</span>
+        } @else {
+          <span class="badge badge-muted">Próximamente</span>
+        }
+      </div>
+
+      <h1 class="module-main-title">{{ current.code }}: {{ current.title }}</h1>
+      <p class="module-main-description">{{ current.description }}</p>
+
+      <div class="module-meta-row">
+        <span class="meta-item"><strong>Dificultad:</strong> {{ current.difficulty }}</span>
+        <span class="meta-item"><strong>Duración Estimada:</strong> ⏱ {{ current.estimatedMinutes }} min</span>
+        <span class="meta-item"><strong>Lecciones:</strong> {{ current.lessonCount }} lecciones</span>
+      </div>
+
+      @if (current.isAvailable) {
+        <div class="module-progress-banner" aria-label="Progreso del módulo">
+          <div class="progress-labels">
+            <span>Progreso del Estudiante: {{ completedLessonsInModule() }} de {{ current.lessons.length }} lecciones aprobadas</span>
+            <span class="pct-num">{{ moduleProgressPercent() }}%</span>
+          </div>
+          <div class="progress-bar-track" aria-hidden="true">
+            <div class="progress-bar-fill" [style.width.%]="moduleProgressPercent()"></div>
+          </div>
+        </div>
+      }
+    </header>
+
+    <div class="module-body-grid">
+      <div class="primary-column">
+        <section class="section-card lessons-section" aria-labelledby="lessons-heading">
+          <div class="section-card-header">
+            <h2 id="lessons-heading" class="section-card-title">Lecciones del Módulo</h2>
+            <span class="section-card-subtitle">{{ current.lessons.length }} lecciones estructuradas</span>
+          </div>
+
+          <div class="lessons-list">
+            @for (lesson of current.lessons; track lesson.id) {
+              <article class="lesson-row-card" [class.completed]="isLessonDone(lesson.id)" [class.available]="lesson.isAvailable">
+                <div class="lesson-meta-col">
+                  <span class="lesson-order-num">{{ lesson.id }}</span>
+                </div>
+
+                <div class="lesson-info-col">
+                  <h3 class="lesson-row-title">{{ lesson.title }}</h3>
+                  <div class="lesson-row-chips">
+                    <span class="chip chip-time">⏱ {{ lesson.estimatedMinutes }} min</span>
+                    <span class="chip chip-diff">{{ lesson.difficulty }}</span>
+                    @if (isLessonDone(lesson.id)) {
+                      <span class="chip chip-done">✓ Completada (+100 XP)</span>
+                    } @else if (lesson.isAvailable) {
+                      <span class="chip chip-avail">Disponible</span>
+                    } @else {
+                      <span class="chip chip-lock">Próximamente</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="lesson-action-col">
+                  @if (lesson.isAvailable) {
+                    <a [routerLink]="['/leccion', lesson.id]" class="btn btn-primary-sm">
+                      @if (isLessonDone(lesson.id)) {
+                        Repasar Lección →
+                      } @else {
+                        Iniciar Lección →
+                      }
+                    </a>
+                  } @else {
+                    <button type="button" class="btn btn-disabled-sm" disabled aria-disabled="true">
+                      Próximamente
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      </div>
+
+      <aside class="sidebar-column">
+        @if (current.bloomObjectives && current.bloomObjectives.length > 0) {
+          <section class="section-card sidebar-card" aria-labelledby="bloom-heading">
+            <h2 id="bloom-heading" class="sidebar-card-title">Objetivos Pedagógicos (Bloom)</h2>
+            <ul class="bloom-list">
+              @for (obj of current.bloomObjectives; track $index) {
+                <li class="bloom-item">
+                  <span class="bloom-icon">🎯</span>
+                  <span class="bloom-text">{{ obj }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <section class="section-card sidebar-card" aria-labelledby="standards-heading">
+          <h2 id="standards-heading" class="sidebar-card-title">Estándares y Marcos de Referencia</h2>
+          <ul class="standards-list">
+            @for (std of current.standards; track std.name) {
+              <li class="standard-item">
+                <div class="std-info">
+                  <strong class="std-name">{{ std.name }}</strong>
+                  <span class="std-ver">Versión: {{ std.version }}</span>
+                </div>
+                <a
+                  [href]="std.specUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="std-link-btn"
+                  aria-label="Abrir especificación oficial en nueva pestaña"
+                >
+                  Consultar ↗
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="section-card sidebar-card nav-summary-card">
+          <h2 class="sidebar-card-title">Navegación Curricular</h2>
+          <p class="nav-card-desc">Explora el resto de módulos troncales y niveles de madurez.</p>
+          <a routerLink="/curriculum" class="btn btn-secondary full-width">← Volver al Catálogo</a>
+        </section>
+      </aside>
+    </div>
+  }
+</div>

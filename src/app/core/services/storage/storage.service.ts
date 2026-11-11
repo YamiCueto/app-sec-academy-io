@@ -91,6 +91,13 @@ export class StorageService {
       return false;
     }
 
+    if (
+      candidate['lastActiveLessonId'] !== undefined &&
+      (typeof candidate['lastActiveLessonId'] !== 'string' || !candidate['lastActiveLessonId'].trim())
+    ) {
+      return false;
+    }
+
     if (!Array.isArray(candidate['completedLessons'])) {
       return false;
     }

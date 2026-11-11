@@ -32,20 +32,18 @@ describe('Enrutamiento y Navegacion Inicial', () => {
     expect(title?.textContent).toContain('Panel de Aprendizaje');
   });
 
-  it('debe navegar hacia /curriculum cargando la vista provisional del curriculo', async () => {
+  it('debe navegar hacia /curriculum cargando la vista interactiva del catalogo curricular', async () => {
     await harness.navigateByUrl('/curriculum');
     expect(location.path()).toBe('/curriculum');
-    const title = harness.routeNativeElement?.querySelector('.view-title');
-    expect(title?.textContent).toContain('Currículo de Especialización AppSec');
+    const title = harness.routeNativeElement?.querySelector('.curriculum-title');
+    expect(title?.textContent).toContain('Catálogo Curricular de Especialización AppSec');
   });
 
-  it('debe navegar hacia /modulo/:id y reflejar el identificador del modulo', async () => {
+  it('debe navegar hacia /modulo/:id cargando la vista detallada del modulo', async () => {
     await harness.navigateByUrl('/modulo/m01');
     expect(location.path()).toBe('/modulo/m01');
-    const title = harness.routeNativeElement?.querySelector('.view-title');
-    const param = harness.routeNativeElement?.querySelector('.param-value');
-    expect(title?.textContent).toContain('Detalle del Módulo');
-    expect(param?.textContent).toContain('m01');
+    const title = harness.routeNativeElement?.querySelector('.module-main-title');
+    expect(title?.textContent).toContain('M01: Fundamentos OWASP Top 10');
   });
 
   it('debe navegar hacia /leccion/:id y renderizar el espacio de leccion', async () => {

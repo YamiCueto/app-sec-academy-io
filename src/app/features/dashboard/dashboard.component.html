@@ -58,6 +58,35 @@
     </article>
   </section>
 
+  <section class="continue-learning-section" aria-labelledby="continue-heading">
+    @let step = continueStep();
+    <article class="continue-card" [class]="'state-' + step.state">
+      <div class="continue-badge-row">
+        <span class="continue-badge">{{ step.badgeText }}</span>
+        <span class="continue-module-tag">Módulo {{ step.moduleCode }}</span>
+      </div>
+
+      <div class="continue-main">
+        <h2 id="continue-heading" class="continue-heading">{{ step.heading }}</h2>
+        <p class="continue-desc">{{ step.description }}</p>
+      </div>
+
+      <div class="continue-actions">
+        <a [routerLink]="step.actionRoute" class="btn btn-primary continue-main-btn">
+          {{ step.actionLabel }}
+        </a>
+        @if (step.state === 'all_completed') {
+          <a [routerLink]="['/leccion', '1.1']" class="btn btn-secondary">
+            Repasar Lección 1.1
+          </a>
+        }
+        <a routerLink="/curriculum" class="btn btn-secondary">
+          Ver Catálogo
+        </a>
+      </div>
+    </article>
+  </section>
+
   @if (progressStore.isEmpty()) {
     <section class="empty-state-card" aria-label="Estado inicial">
       <div class="empty-state-icon">📋</div>

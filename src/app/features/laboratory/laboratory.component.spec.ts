@@ -126,4 +126,20 @@ describe('LaboratoryComponent', () => {
       'Laboratorio no encontrado'
     );
   });
+
+  it('6. debe incluir enlaces de retorno directo a la leccion 1.2 tanto en la cabecera activa como en no encontrado', async () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const returnBtn = compiled.querySelector('.back-lesson-btn');
+    expect(returnBtn).toBeTruthy();
+    expect(returnBtn?.textContent).toContain('Volver a la Lección 1.2');
+
+    host.labId.set('lab-inexistente-99');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const notFoundReturn = fixture.nativeElement.querySelector('.not-found-actions .btn-secondary');
+    expect(notFoundReturn).toBeTruthy();
+    expect(notFoundReturn?.textContent).toContain('Volver a la Lección 1.2');
+  });
 });

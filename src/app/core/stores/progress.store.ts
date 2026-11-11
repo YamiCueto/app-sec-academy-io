@@ -44,6 +44,7 @@ export class ProgressStore {
   readonly completedLessonsCount = computed(() => this._state().completedLessons.length);
   readonly labRecords = computed(() => this._state().labRecords);
   readonly lessonRecords = computed(() => this._state().lessonRecords);
+  readonly lastActiveLessonId = computed(() => this._state().lastActiveLessonId ?? null);
 
   readonly completedLabsCount = computed(() => {
     return Object.values(this._state().labRecords).filter((lab) => lab.passed).length;
@@ -72,11 +73,15 @@ export class ProgressStore {
   });
 
   recordLessonCompletion(lessonId: string, earnedXP: number = 0): void {
+    if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
+      return;
+    }
+    const cleanId = lessonId.trim();
     const current = this._state();
-    const alreadyCompleted = current.completedLessons.includes(lessonId);
+    const alreadyCompleted = current.completedLessons.includes(cleanId);
     const updatedLessons = alreadyCompleted
       ? current.completedLessons
-      : [...current.completedLessons, lessonId];
+      : [...current.completedLessons, cleanId];
 
     const safeEarnedXP = earnedXP > 0 ? earnedXP : 0;
     const nextXP = alreadyCompleted ? current.totalXP : current.totalXP + safeEarnedXP;
@@ -86,10 +91,27 @@ export class ProgressStore {
       ...current,
       updatedAt: now,
       totalXP: nextXP,
-      lastActiveLessonId: lessonId,
+      lastActiveLessonId: cleanId,
       completedLessons: updatedLessons
     };
 
+    this.persistAndSet(nextState);
+  }
+
+  setLastActiveLesson(lessonId: string): void {
+    if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
+      return;
+    }
+    const cleanId = lessonId.trim();
+    const current = this._state();
+    if (current.lastActiveLessonId === cleanId) {
+      return;
+    }
+    const nextState: UserProgressState = {
+      ...current,
+      updatedAt: new Date().toISOString(),
+      lastActiveLessonId: cleanId
+    };
     this.persistAndSet(nextState);
   }
 

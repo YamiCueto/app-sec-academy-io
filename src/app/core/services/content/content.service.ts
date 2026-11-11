@@ -6,6 +6,17 @@ import { LESSON_1_2_DATA } from './data/lesson-1.2.data';
 import { LESSON_1_3_DATA } from './data/lesson-1.3.data';
 import { LESSON_1_4_DATA } from './data/lesson-1.4.data';
 
+export interface NextLessonNavInfo {
+  readonly nextLessonId: string | null;
+  readonly isAvailable: boolean;
+  readonly nextLessonTitle: string | null;
+}
+
+export interface PrevLessonNavInfo {
+  readonly prevLessonId: string | null;
+  readonly prevLessonTitle: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -37,32 +48,131 @@ export class ContentService {
     return this.getLessonSync(lessonId);
   }
 
+  isLessonAvailable(lessonId: string): boolean {
+    const sanitizedId = lessonId.trim();
+    return Boolean(this.lessonRegistry[sanitizedId]);
+  }
+
   getModules(): readonly ModuleMetadata[] {
-    return CURRICULUM_MODULES.map((m) => ({
-      id: m.id,
-      code: m.code,
-      title: m.title,
-      description: 'Módulo de especialización técnica con laboratorios prácticos y evaluaciones.',
-      difficulty: 'basico',
-      estimatedMinutes: m.lessonIds.length * 30,
-      lessonCount: m.lessonIds.length,
-      standards: [
-        {
-          name: 'OWASP / MITRE',
-          version: '2021+',
-          specUrl: 'https://owasp.org'
-        }
-      ],
-      lessons: m.lessonIds.map((lId, idx) => {
+    return CURRICULUM_MODULES.map((m) => {
+      const lessons = m.lessonIds.map((lId, idx) => {
         const detail = this.lessonRegistry[lId];
+        const constantLesson = m.lessons.find((l) => l.id === lId);
         return {
           id: lId,
-          title: detail?.title ?? `Lección ${lId}`,
-          order: detail?.order ?? idx + 1,
-          estimatedMinutes: detail?.estimatedMinutes ?? 30,
-          difficulty: detail?.difficulty ?? 'basico'
+          title: detail?.title ?? constantLesson?.title ?? `Lección ${lId}`,
+          order: detail?.order ?? constantLesson?.order ?? idx + 1,
+          estimatedMinutes: detail?.estimatedMinutes ?? constantLesson?.estimatedMinutes ?? 30,
+          difficulty: detail?.difficulty ?? constantLesson?.difficulty ?? m.difficulty,
+          isAvailable: Boolean(detail)
         };
-      })
-    }));
+      });
+
+      return {
+        id: m.id,
+        code: m.code,
+        title: m.title,
+        description: m.description,
+        difficulty: m.difficulty,
+        estimatedMinutes: m.estimatedMinutes,
+        lessonCount: m.lessonIds.length,
+        block: m.block,
+        blockTitle: m.blockTitle,
+        isAvailable: m.isAvailable,
+        bloomObjectives: m.bloomObjectives,
+        standards: m.standards,
+        lessons
+      };
+    });
+  }
+
+  getModuleById(moduleId: string): ModuleMetadata | null {
+    if (!moduleId) {
+      return null;
+    }
+    const clean = moduleId.trim().toLowerCase();
+    const modules = this.getModules();
+    const exact = modules.find(
+      (m) =>
+        m.id.toLowerCase() === clean ||
+        m.code.toLowerCase() === clean ||
+        clean.startsWith(m.id.toLowerCase())
+    );
+    return exact ?? null;
+  }
+
+  getOfficialSequence(): readonly string[] {
+    return CURRICULUM_MODULES.flatMap((m) => m.lessonIds);
+  }
+
+  getNextLessonNavigation(currentLessonId: string): NextLessonNavInfo {
+    const sequence = this.getOfficialSequence();
+    const cleanId = currentLessonId.trim().split('-')[0];
+    const currentIndex = sequence.indexOf(cleanId);
+
+    if (currentIndex === -1 || currentIndex >= sequence.length - 1) {
+      return {
+        nextLessonId: null,
+        isAvailable: false,
+        nextLessonTitle: null
+      };
+    }
+
+    const nextId = sequence[currentIndex + 1];
+    const isAvail = this.isLessonAvailable(nextId);
+    const detail = this.lessonRegistry[nextId];
+
+    let title: string | null = null;
+    if (detail) {
+      title = detail.title;
+    } else {
+      for (const mod of CURRICULUM_MODULES) {
+        const found = mod.lessons.find((l) => l.id === nextId);
+        if (found) {
+          title = found.title;
+          break;
+        }
+      }
+    }
+
+    return {
+      nextLessonId: nextId,
+      isAvailable: isAvail,
+      nextLessonTitle: title
+    };
+  }
+
+  getPrevLessonNavigation(currentLessonId: string): PrevLessonNavInfo {
+    const sequence = this.getOfficialSequence();
+    const cleanId = currentLessonId.trim().split('-')[0];
+    const currentIndex = sequence.indexOf(cleanId);
+
+    if (currentIndex <= 0) {
+      return {
+        prevLessonId: null,
+        prevLessonTitle: null
+      };
+    }
+
+    const prevId = sequence[currentIndex - 1];
+    const detail = this.lessonRegistry[prevId];
+
+    let title: string | null = null;
+    if (detail) {
+      title = detail.title;
+    } else {
+      for (const mod of CURRICULUM_MODULES) {
+        const found = mod.lessons.find((l) => l.id === prevId);
+        if (found) {
+          title = found.title;
+          break;
+        }
+      }
+    }
+
+    return {
+      prevLessonId: prevId,
+      prevLessonTitle: title
+    };
   }
 }

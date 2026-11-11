@@ -123,6 +123,7 @@ export interface LessonMetadata {
   readonly order: number;
   readonly estimatedMinutes: number;
   readonly difficulty: DifficultyLevel;
+  readonly isAvailable?: boolean;
 }
 
 export interface ModuleMetadata {
@@ -133,6 +134,10 @@ export interface ModuleMetadata {
   readonly difficulty: DifficultyLevel;
   readonly estimatedMinutes: number;
   readonly lessonCount: number;
+  readonly block?: 'fundacional' | 'intermedio' | 'avanzado';
+  readonly blockTitle?: string;
+  readonly isAvailable?: boolean;
+  readonly bloomObjectives?: readonly string[];
   readonly standards: readonly {
     readonly name: string;
     readonly version: string;

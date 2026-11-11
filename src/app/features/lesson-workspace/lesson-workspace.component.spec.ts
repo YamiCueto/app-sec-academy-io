@@ -213,4 +213,78 @@ describe('LessonWorkspaceComponent', () => {
     expect(compiled.querySelector('.lesson-not-found-card')).toBeTruthy();
     expect(compiled.querySelector('.not-found-title')?.textContent).toContain('Lección no encontrada');
   });
+
+  it('debe proveer navegacion secuencial a siguiente leccion 1.2 desde la leccion 1.1 sin otorgar XP indebido', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.1';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const nextBtn = compiled.querySelector('.next-lesson-btn');
+    expect(nextBtn).toBeTruthy();
+    expect(nextBtn?.textContent).toContain('Siguiente Lección (1.2)');
+
+    const prevBtn = compiled.querySelector('.prev-lesson-btn');
+    expect(prevBtn).toBeNull();
+
+    expect(progressStore.totalXP()).toBe(0);
+    expect(progressStore.completedLessons()).toEqual([]);
+  });
+
+  it('debe proveer navegacion bidireccional en la leccion 1.2 (anterior a 1.1 y siguiente a 1.3)', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.2';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const prevBtn = compiled.querySelector('.prev-lesson-btn');
+    const nextBtn = compiled.querySelector('.next-lesson-btn');
+
+    expect(prevBtn).toBeTruthy();
+    expect(prevBtn?.textContent).toContain('Lección Anterior (1.1)');
+    expect(nextBtn).toBeTruthy();
+    expect(nextBtn?.textContent).toContain('Siguiente Lección (1.3)');
+  });
+
+  it('debe mostrar tarjeta informativa de leccion en desarrollo en la leccion 1.4 sin callejones sin salida', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.4';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const prevBtn = compiled.querySelector('.prev-lesson-btn');
+    expect(prevBtn).toBeTruthy();
+    expect(prevBtn?.textContent).toContain('Lección Anterior (1.3)');
+
+    const nextNotice = compiled.querySelector('.next-module-notice-card');
+    expect(nextNotice).toBeTruthy();
+    expect(nextNotice?.textContent).toContain('Lección 2.1');
+    expect(nextNotice?.textContent).toContain('en desarrollo');
+
+    const noticeActions = nextNotice?.querySelectorAll('a');
+    expect(noticeActions?.length).toBe(3);
+  });
+
+  it('debe incluir enlaces de retorno al modulo en la cabecera y en la barra de navegacion', async () => {
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.componentInstance.lessonId = '1.1';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const headerBack = compiled.querySelector('.header-back-link');
+    const footerBack = compiled.querySelector('.back-module-link');
+
+    expect(headerBack).toBeTruthy();
+    expect(headerBack?.textContent).toContain('Volver al Módulo');
+    expect(footerBack).toBeTruthy();
+    expect(footerBack?.textContent).toContain('Volver al Módulo M01');
+  });
 });
