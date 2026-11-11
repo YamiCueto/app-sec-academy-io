@@ -1,5 +1,20 @@
+import { LessonSectionId } from './content.model';
+
+export type AcademicProgressStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'reading_finished'
+  | 'quiz_pending'
+  | 'lab_pending'
+  | 'completed';
+
 export interface LessonRecord {
-  readonly completedAt: string;
+  readonly completedAt?: string;
+  readonly lastAccessedAt?: string;
+  readonly lastSectionId?: LessonSectionId;
+  readonly visitedSections?: readonly LessonSectionId[];
+  readonly readingCompleted?: boolean;
+  readonly isLegacyCompleted?: boolean;
   readonly quizScore: number;
   readonly quizAttempts: number;
   readonly quizPassed: boolean;
@@ -23,12 +38,13 @@ export interface UserPreferences {
 }
 
 export interface UserProgressState {
-  readonly schemaVersion: '1.0.0';
+  readonly schemaVersion: '2.0.0';
   readonly alias: string;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly totalXP: number;
   readonly lastActiveLessonId?: string;
+  readonly lastActiveSectionId?: LessonSectionId;
   readonly completedLessons: readonly string[];
   readonly lessonRecords: Readonly<Record<string, LessonRecord>>;
   readonly labRecords: Readonly<Record<string, LabRecord>>;

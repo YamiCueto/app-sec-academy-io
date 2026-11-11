@@ -57,6 +57,16 @@ export class QuizRunnerComponent implements OnInit {
 
   protected readonly isPassed = computed(() => this.score() >= 80);
 
+  protected readonly bestScore = computed(() => {
+    const record = this.progressStore.getLessonRecord(this.lessonId());
+    return record?.quizScore ?? 0;
+  });
+
+  protected readonly previousAttempts = computed(() => {
+    const record = this.progressStore.getLessonRecord(this.lessonId());
+    return record?.quizAttempts ?? 0;
+  });
+
   ngOnInit(): void {
     this.initializeQuestions();
   }

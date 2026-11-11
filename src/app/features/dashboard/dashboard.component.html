@@ -33,16 +33,16 @@
       <span class="stat-hint">Calculada según actividades resueltas</span>
     </article>
 
-    <article class="stat-card">
-      <span class="stat-label">Lecciones Completadas</span>
-      <span class="stat-value stat-lessons-value">{{ progressStore.completedLessonsCount() }} / 49</span>
-      <span class="stat-hint">Currículo troncal previsto</span>
+    <article class="stat-card stat-card-available">
+      <span class="stat-label">Módulo 01 Disponible</span>
+      <span class="stat-value stat-lessons-value">{{ m01Progress().completedLessonsCount }} / 4</span>
+      <span class="stat-hint">Lecciones activas completadas</span>
     </article>
 
     <article class="stat-card">
-      <span class="stat-label">Progreso Curricular</span>
-      <span class="stat-value stat-percentage-value">{{ progressStore.completionPercentage() }}%</span>
-      <span class="stat-hint">Porcentaje ponderado global</span>
+      <span class="stat-label">Progreso Módulo 01</span>
+      <span class="stat-value stat-percentage-value">{{ m01Progress().completionPercentage }}%</span>
+      <span class="stat-hint">Avance en contenido disponible</span>
     </article>
 
     <article class="stat-card">
@@ -55,6 +55,12 @@
       <span class="stat-label">Evaluaciones Aprobadas</span>
       <span class="stat-value stat-quizzes-value">{{ progressStore.completedQuizzesCount() }}</span>
       <span class="stat-hint">Knowledge Checks con &ge; 80%</span>
+    </article>
+
+    <article class="stat-card stat-card-scope">
+      <span class="stat-label">Alcance Total Previsto</span>
+      <span class="stat-value stat-total-planned-value">{{ progressStore.completedLessonsCount() }} / {{ totalPlannedLessons }}</span>
+      <span class="stat-hint">Total planificado en 14 módulos ({{ progressStore.completionPercentage() }}%)</span>
     </article>
   </section>
 
@@ -69,6 +75,14 @@
       <div class="continue-main">
         <h2 id="continue-heading" class="continue-heading">{{ step.heading }}</h2>
         <p class="continue-desc">{{ step.description }}</p>
+        @if (step.readingProgressDetail) {
+          <div class="continue-detail-row">
+            <span class="reading-detail-chip">{{ step.readingProgressDetail }}</span>
+            @if (step.pendingRequirementNotice) {
+              <span class="pending-notice-chip">{{ step.pendingRequirementNotice }}</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="continue-actions">

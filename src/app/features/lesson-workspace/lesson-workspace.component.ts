@@ -6,8 +6,11 @@ import {
   LESSON_SECTIONS_CATALOG,
   LessonSectionMeta
 } from '../../models/content.model';
+import { AcademicProgressStatus } from '../../models/progress.model';
 import { ContentService } from '../../core/services/content/content.service';
 import { ProgressStore } from '../../core/stores/progress.store';
+import { getLessonLabRequirement } from '../../core/constants/curriculum.constants';
+import { isValidSectionId, normalizeSectionId } from '../../core/services/storage/storage.service';
 import { CodeViewerComponent } from '../../shared/components/code-viewer/code-viewer.component';
 import { QuizRunnerComponent } from '../../shared/components/quiz-runner/quiz-runner.component';
 
@@ -43,6 +46,22 @@ export class LessonWorkspaceComponent {
     return Math.min(100, Math.round((visitedCount / this.sectionsCatalog.length) * 100));
   });
 
+  protected readonly academicStatus = computed<AcademicProgressStatus>(() => {
+    const current = this.lesson();
+    if (!current) {
+      return 'not_started';
+    }
+    return this.progressStore.getLessonAcademicStatus(current.id);
+  });
+
+  protected readonly labRequirement = computed(() => {
+    const current = this.lesson();
+    if (!current) {
+      return null;
+    }
+    return getLessonLabRequirement(current.id);
+  });
+
   protected readonly isLessonDoneInStore = computed(() => {
     const current = this.lesson();
     if (!current) {
@@ -75,12 +94,18 @@ export class LessonWorkspaceComponent {
   }
 
   goToSection(sectionId: LessonSectionId): void {
-    this.activeSectionId.set(sectionId);
+    const normalized = normalizeSectionId(sectionId);
+    this.activeSectionId.set(normalized);
     this.visitedSections.update((prev) => {
       const next = new Set(prev);
-      next.add(sectionId);
+      next.add(normalized);
       return next;
     });
+
+    const currentLesson = this.lesson();
+    if (currentLesson) {
+      this.progressStore.recordSectionVisit(currentLesson.id, normalized);
+    }
   }
 
   nextSection(): void {
@@ -97,6 +122,16 @@ export class LessonWorkspaceComponent {
     }
   }
 
+  resetReadingToBeginning(): void {
+    const currentLesson = this.lesson();
+    if (!currentLesson) {
+      return;
+    }
+    this.progressStore.resetLessonReading(currentLesson.id);
+    this.activeSectionId.set('introduccion');
+    this.visitedSections.set(new Set(['introduccion']));
+  }
+
   markLessonAsCompleted(): void {
     const currentLesson = this.lesson();
     if (!currentLesson) {
@@ -111,10 +146,27 @@ export class LessonWorkspaceComponent {
     if (syncResult) {
       this.lesson.set(syncResult);
       this.isLoading.set(false);
-      this.activeSectionId.set('introduccion');
-      this.visitedSections.set(new Set(['introduccion']));
+
+      const savedRecord = this.progressStore.getLessonRecord(syncResult.id);
+      let initialSection: LessonSectionId = 'introduccion';
+      if (savedRecord?.lastSectionId && isValidSectionId(savedRecord.lastSectionId)) {
+        initialSection = savedRecord.lastSectionId;
+      }
+
+      let initialVisited = new Set<LessonSectionId>(['introduccion']);
+      if (savedRecord?.visitedSections && savedRecord.visitedSections.length > 0) {
+        const validList = savedRecord.visitedSections.filter(isValidSectionId);
+        if (validList.length > 0) {
+          initialVisited = new Set(validList);
+        }
+      }
+      initialVisited.add(initialSection);
+
+      this.activeSectionId.set(initialSection);
+      this.visitedSections.set(initialVisited);
       this.isExplicitlyCompleted.set(false);
-      this.progressStore.setLastActiveLesson(syncResult.id);
+
+      this.progressStore.recordSectionVisit(syncResult.id, initialSection);
       return;
     }
     this.isLoading.set(false);

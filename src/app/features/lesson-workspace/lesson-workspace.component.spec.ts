@@ -287,4 +287,38 @@ describe('LessonWorkspaceComponent', () => {
     expect(footerBack).toBeTruthy();
     expect(footerBack?.textContent).toContain('Volver al Módulo M01');
   });
+
+  it('debe restaurar la seccion previamente consultada al cargar la leccion', async () => {
+    progressStore.recordSectionVisit('1.1', 'ejemplos');
+
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const workspace = fixture.debugElement.children[0].componentInstance as LessonWorkspaceComponent;
+    expect(workspace['activeSectionId']()).toBe('ejemplos');
+    expect(workspace['currentSectionMeta']().title).toContain('Ejemplos');
+  });
+
+  it('debe permitir reiniciar la lectura desde el inicio sin borrar resultados academicos', async () => {
+    progressStore.recordQuizResult('1.1', 100, true);
+    expect(progressStore.totalXP()).toBe(100);
+
+    const fixture = TestBed.createComponent(TestWorkspaceHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const workspace = fixture.debugElement.children[0].componentInstance as LessonWorkspaceComponent;
+    workspace.goToSection('resumen');
+    expect(workspace['activeSectionId']()).toBe('resumen');
+
+    workspace.resetReadingToBeginning();
+    fixture.detectChanges();
+
+    expect(workspace['activeSectionId']()).toBe('introduccion');
+    expect(progressStore.totalXP()).toBe(100);
+    expect(progressStore.completedLessons()).toContain('1.1');
+  });
 });

@@ -3,25 +3,25 @@
 
 - **Proyecto**: AppSec Academy
 - **Repositorio**: `https://github.com/YamiCueto/app-sec-academy-io`
-- **Línea Base Inicial**: Commit [`78faa75`](https://github.com/YamiCueto/app-sec-academy-io/commit/78faa75)
+- **Línea Base Inicial**: Commit [`244a553`](https://github.com/YamiCueto/app-sec-academy-io/commit/244a553)
 - **Marco Metodológico**: Angular 22 Standalone con Signals, Dark-First Design System, Web Workers en cliente, Cero Comentarios en código fuente y Criterios de Aceptación Verificables.
-- **Fecha de Planificación**: 10 de noviembre de 2026.
-- **Estado de Aprobación**: Hito 1 formalmente autorizado; Hitos 2 a 6 catalogados como propuestas técnicas pendientes de aprobación por el Product Owner.
-- **Foco Principal del Sprint 2**: Consolidar la experiencia de aprendizaje del estudiante, la continuidad de la navegación, la accesibilidad universal (WCAG 2.1 AA) y la calidad pedagógica e interactiva.
+- **Fecha de Planificación**: 11 de noviembre de 2026.
+- **Estado de Aprobación**: Hito 1 cerrado y publicado en producción; Hito 2 autorizado y completado localmente (reemplaza la propuesta previa del Módulo 02 por Continuidad del Aprendizaje y Persistencia Resiliente); Hitos 3 a 6 se mantienen como propuestas técnicas pendientes de aprobación por el Product Owner.
+- **Foco Principal del Sprint 2**: Consolidar la experiencia de aprendizaje del estudiante, la continuidad de la navegación, la persistencia resiliente, la accesibilidad universal (WCAG 2.1 AA) y la calidad pedagógica e interactiva.
 
 ---
 
 ## 1. Meta del Sprint 2 (Sprint Goal)
 
-> **"Consolidar la experiencia integral de aprendizaje del estudiante mediante la navegación curricular fluida (Explorador de Currículo, Detalle de Módulos y continuidad inter-lecciones); como propuestas técnicas para aprobación posterior, expandir el contenido pedagógico con los Módulos Troncales 02 y 03, laboratorios interactivos en Web Worker (`LAB-SEC-01` y `LAB-API-01`), y la gestión soberana del perfil con exportación e importación de respaldos JSON validados mediante hash de comprobación de integridad SHA-256."**
+> **"Consolidar la experiencia integral de aprendizaje del estudiante mediante la navegación curricular fluida (Explorador de Currículo, Detalle de Módulos y continuidad inter-lecciones); garantizar la continuidad pedagógica exacta con persistencia resiliente de lecciones y secciones consultadas bajo el esquema v2.0.0 sin duplicación de XP; y como propuestas técnicas para aprobación posterior, expandir el contenido pedagógico con los Módulos Troncales 02 y 03, laboratorios interactivos en Web Worker (`LAB-SEC-01` y `LAB-API-01`), y la gestión soberana del perfil con exportación e importación de respaldos JSON validados mediante hash de comprobación de integridad SHA-256."**
 
 ```mermaid
 graph TD
-    S2_H0["Hito 0: Diagnóstico y Planificación (Aprobado)<br/>(docs/sprints/SPRINT_2_*)"] --> S2_H1["Hito 1: Navegación del Currículo & Flujo del Estudiante [EN EJECUCIÓN]<br/>(Curriculum, ModuleDetail, Next Lesson UX)"]
-    S2_H1 -. "Pendiente Aprobación" .-> S2_H2["Hito 2: Módulo 02 - Codificación Segura [PROPUESTA]<br/>(Lecciones 2.1 a 2.4 + 20 Quizzes)"]
-    S2_H2 -. "Pendiente Aprobación" .-> S2_H3["Hito 3: Laboratorio Ejecutable LAB-SEC-01 [PROPUESTA]<br/>(Inyección SQL & Sanitización XSS en Sandbox)"]
-    S2_H3 -. "Pendiente Aprobación" .-> S2_H4["Hito 4: Módulo 03 - Seguridad en APIs [PROPUESTA]<br/>(Lecciones 3.1 a 3.4 + 20 Quizzes)"]
-    S2_H4 -. "Pendiente Aprobación" .-> S2_H5["Hito 5: Laboratorio Ejecutable LAB-API-01 [PROPUESTA]<br/>(BFLA & Blindaje Administrativo en Sandbox)"]
+    S2_H0["Hito 0: Diagnóstico y Planificación (Aprobado)<br/>(docs/sprints/SPRINT_2_*)"] --> S2_H1["Hito 1: Navegación del Currículo & Flujo del Estudiante [CERRADO Y PUBLICADO]<br/>(Commit 244a553)"]
+    S2_H1 --> S2_H2["Hito 2: Continuidad del Aprendizaje & Persistencia Resiliente [COMPLETADO LOCALMENTE]<br/>(Esquema v2.0.0, Última Sección, Idempotencia XP, Separación de Estados)"]
+    S2_H2 -. "Pendiente Aprobación" .-> S2_H3["Hito 3: Módulo 02 - Codificación Segura [PROPUESTA]<br/>(Lecciones 2.1 a 2.4 + 20 Quizzes)"]
+    S2_H3 -. "Pendiente Aprobación" .-> S2_H4["Hito 4: Laboratorio Ejecutable LAB-SEC-01 [PROPUESTA]<br/>(Inyección SQL & Sanitización XSS en Sandbox)"]
+    S2_H4 -. "Pendiente Aprobación" .-> S2_H5["Hito 5: Módulo 03 - Seguridad en APIs [PROPUESTA]<br/>(Lecciones 3.1 a 3.4 + 20 Quizzes)"]
     S2_H5 -. "Pendiente Aprobación" .-> S2_H6["Hito 6: Perfil Soberano & Respaldo con Hash SHA-256 [PROPUESTA]<br/>(Export/Import JSON SHA-256 + CI/CD Cierre)"]
 ```
 
@@ -66,23 +66,33 @@ graph TD
 
 ---
 
-### Hito 2: Módulo 02: Codificación Segura (Secure Coding) — Lecciones 2.1 a 2.4 [PROPUESTA PENDIENTE DE APROBACIÓN]
-- **Objetivo**: Desarrollar el contenido curricular completo del Módulo 02 fundamentado en MITRE CWE Top 25 y SEI CERT Coding Standards.
-- **Lecciones a Desarrollar**:
-  - **Lección 2.1**: Validación de entrada y codificación contextual (XSS, CWE-79, ASVS V5).
-  - **Lección 2.2**: Consultas parametrizadas y prevención de inyección (SQLi, CWE-89, OWASP A03:2021).
-  - **Lección 2.3**: Manejo seguro de memoria, enteros y tipos (CWE-119, CWE-190).
-  - **Lección 2.4**: Manejo seguro de errores y prevención de fuga de trazas (CWE-209, CWE-532).
-- **Archivos a Crear / Modificar**:
-  - `src/app/core/services/content/data/lesson-2.1.data.ts` a `lesson-2.4.data.ts`.
-  - `src/app/core/services/content/content.service.ts` (registro de lecciones 2.1 a 2.4).
-  - `src/app/core/services/content/content.service.spec.ts` (pruebas de integridad del Módulo 02).
+### Hito 2: Continuidad del Aprendizaje, Progreso Académico y Persistencia Resiliente [AUTORIZADO Y COMPLETADO LOCALMENTE]
+- **Objetivo**: Implementar persistencia de posición de lectura exacta por lección (sección activa y consultadas), evolución del esquema a v2.0.0 con migraciones idempotentes desde Sprint 1 y H1, separación formal de 6 estados académicos pedagógicos, eliminación del acoplamiento hardcoded de laboratorios en `ProgressStore` mediante políticas declarativas de metadatos, garantía matemática de no duplicación de XP y enriquecimiento del Dashboard y evaluaciones formativas. Sustituye la propuesta previa de expansión de contenidos del Módulo 02.
+- **Capacidades Implementadas**:
+  - **Esquema de Almacenamiento v2.0.0**: Migración automática, defensiva e idempotente que preserva sin alteración XP, resultados de cuestionarios, lecciones aprobadas y laboratorios.
+  - **Persistencia de Posición de Aprendizaje**: Registro de `lastActiveLessonId`, `lastActiveSectionId`, `lastSectionId` y `visitedSections` por lección. Al regresar a una lección se restaura la sección consultada exacta; el estudiante puede reiniciar la lectura al inicio sin afectar su historial académico.
+  - **Separación de Estados Académicos**: Contratos formales para `not_started`, `in_progress`, `reading_finished`, `quiz_pending`, `lab_pending` y `completed`.
+  - **Requisitos de Laboratorio Basados en Metadatos**: Registro declarativo `LESSON_LAB_POLICIES` en constantes curriculares; desacoplamiento total de identificadores fijos en el almacén reactivo.
+  - **Integridad de XP**: Visitar páginas, navegar entre secciones, migrar datos o recargar la aplicación confiere 0 XP; recompensas concedidas exclusivamente tras verificación legítima una única vez.
+  - **Dashboard Pedagógico**: Tarjeta de reanudación adaptativa con detalle de lectura consultada y aviso de actividades pendientes (laboratorio o evaluación).
+  - **Retroalimentación Formativa**: Visualización de mejor puntuación histórica y consejos pedagógicos de repaso conceptual tras respuestas incorrectas en el cuestionario.
+- **Archivos Modificados / Creados**:
+  - `src/app/models/progress.model.ts` (esquema v2.0.0, `AcademicProgressStatus`, enriquecimiento de `LessonRecord`).
+  - `src/app/core/constants/curriculum.constants.ts` (`LESSON_LAB_POLICIES`, `isLabMandatoryForLesson`, `getLessonLabRequirement`).
+  - `src/app/core/services/storage/storage.service.ts` y `.spec.ts` (migración v1->v2, normalización defensiva, 14 pruebas).
+  - `src/app/core/stores/progress.store.ts` y `.spec.ts` (desacoplamiento de labs, `recordSectionVisit`, `resetLessonReading`, 26 pruebas).
+  - `src/app/features/lesson-workspace/lesson-workspace.component.ts`, `.html`, `.scss` y `.spec.ts` (restauración de sección, reinicio de lectura, banners de requisitos).
+  - `src/app/shared/components/quiz-runner/quiz-runner.component.ts`, `.html`, `.scss` (conservación de mejor nota, consejos pedagógicos).
+  - `src/app/features/dashboard/dashboard.component.ts`, `.html`, `.scss` y `.spec.ts` (tarjeta enriquecida, detalle de avance).
+  - `docs/sprints/SPRINT_2_H2_REPORT.md` (informe técnico integral de implementación).
 - **Criterios de Aceptación Verificables**:
-  1. `AC-H2.1`: Cada lección implementa estrictamente las 9 secciones de `LESSON_TEMPLATE.md`.
-  2. `AC-H2.2`: Cada lección incorpora ejemplos en Java 21 / Spring Boot y Angular comparando código vulnerable vs remediado sin comentarios en el código.
-  3. `AC-H2.3`: Cada lección contiene una batería de exactamente 5 preguntas con opciones barajadas y retroalimentación en todos los distractores.
-  4. `AC-H2.4`: El umbral del 80 % se alcanza exactamente con 4 de 5 aciertos; 3 de 5 reprueba (60 %).
-  5. `AC-H2.5`: Los ejemplos Java se declaran formalmente como analizados estáticamente y pendientes de validación ejecutable.
+  1. `AC-H2.1`: Al recargar una lección en curso, se restaura exactamente la última sección consultada sin saltos ni reseteos.
+  2. `AC-H2.2`: El estudiante puede reiniciar la lectura al inicio sin perder sus resultados de evaluación ni XP acumulado.
+  3. `AC-H2.3`: La migración de estados v1.0.0 (Sprint 1 y Sprint 2 H1) preserva el 100 % de los datos y es estrictamente idempotente.
+  4. `AC-H2.4`: `ProgressStore` no contiene referencias fijas a `'1.2'` para determinar la obligatoriedad de un laboratorio.
+  5. `AC-H2.5`: Ninguna acción de navegación, cambio de sección o recarga incrementa el total de XP.
+  6. `AC-H2.6`: Cero violaciones Axe-Core y 0 desbordamiento horizontal en 360 px, 390 px y 1440 px comprobados en navegador real.
+  7. `AC-H2.7`: 131 pruebas unitarias e integración aprobadas al 100 % con cero comentarios en código fuente.
 
 ---
 

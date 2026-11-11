@@ -50,8 +50,9 @@ describe('DashboardComponent (Integración Reactiva)', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.stat-xp-value')?.textContent).toContain('0 XP');
-    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('0 / 49');
+    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('0 / 4');
     expect(compiled.querySelector('.stat-percentage-value')?.textContent).toContain('0%');
+    expect(compiled.querySelector('.stat-total-planned-value')?.textContent).toContain('0 / 49');
     expect(compiled.querySelector('.empty-state-card')).toBeTruthy();
     expect(compiled.querySelector('.empty-state-message')?.textContent).toContain(
       'No se han registrado lecciones, evaluaciones ni laboratorios'
@@ -67,7 +68,9 @@ describe('DashboardComponent (Integración Reactiva)', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.stat-xp-value')?.textContent).toContain('150 XP');
-    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('1 / 49');
+    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('1 / 4');
+    expect(compiled.querySelector('.stat-percentage-value')?.textContent).toContain('25%');
+    expect(compiled.querySelector('.stat-total-planned-value')?.textContent).toContain('1 / 49');
     expect(compiled.querySelector('.empty-state-card')).toBeNull();
     expect(compiled.querySelector('.active-progress-card')).toBeTruthy();
     expect(compiled.querySelector('.lesson-tag')?.textContent).toContain('Lección 1.1');
@@ -86,7 +89,8 @@ describe('DashboardComponent (Integración Reactiva)', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.stat-xp-value')?.textContent).toContain('0 XP');
-    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('0 / 49');
+    expect(compiled.querySelector('.stat-lessons-value')?.textContent).toContain('0 / 4');
+    expect(compiled.querySelector('.stat-total-planned-value')?.textContent).toContain('0 / 49');
     expect(compiled.querySelector('.empty-state-card')).toBeTruthy();
   });
 
@@ -150,5 +154,17 @@ describe('DashboardComponent (Integración Reactiva)', () => {
     const card = compiled.querySelector('.continue-card');
     expect(card?.textContent).toContain('¡Módulo 01 Completado al 100%!');
     expect(card?.textContent).toContain('Explorar Catálogo Curricular');
+  });
+
+  it('18. Continuacion desde Dashboard: debe reflejar el laboratorio pendiente y orientar al estudiante', () => {
+    progressStore.recordQuizResult('1.2', 100, true);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.continue-card');
+    expect(card?.textContent).toContain('Laboratorio obligatorio LAB-BAC-01 pendiente de aprobación');
+    const labBtn = card?.querySelector('.continue-main-btn') as HTMLAnchorElement;
+    expect(labBtn?.textContent).toContain('Ir a Laboratorio LAB-BAC-01');
   });
 });

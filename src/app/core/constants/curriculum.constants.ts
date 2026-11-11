@@ -2,6 +2,64 @@ import { DifficultyLevel } from '../../models/content.model';
 
 export type CurriculumBlockId = 'fundacional' | 'intermedio' | 'avanzado';
 
+export type LabRequirementPolicy = 'none' | 'optional' | 'mandatory';
+
+export interface LessonLabRequirement {
+  readonly lessonId: string;
+  readonly labId: string | null;
+  readonly requirement: LabRequirementPolicy;
+  readonly isExecutable: boolean;
+  readonly title?: string;
+}
+
+export const LESSON_LAB_POLICIES: Readonly<Record<string, LessonLabRequirement>> = {
+  '1.1': {
+    lessonId: '1.1',
+    labId: 'demo-owasp-taxonomy',
+    requirement: 'none',
+    isExecutable: false,
+    title: 'Demostración Guiada de Taxonomía OWASP'
+  },
+  '1.2': {
+    lessonId: '1.2',
+    labId: 'LAB-BAC-01',
+    requirement: 'mandatory',
+    isExecutable: true,
+    title: 'Control de Acceso y Remediación IDOR en API'
+  },
+  '1.3': {
+    lessonId: '1.3',
+    labId: 'demo-crypto-headers-audit',
+    requirement: 'none',
+    isExecutable: false,
+    title: 'Simulación Guiada de Criptografía y Cabeceras'
+  },
+  '1.4': {
+    lessonId: '1.4',
+    labId: 'demo-asvs-checklist',
+    requirement: 'none',
+    isExecutable: false,
+    title: 'Auditoría Conceptual ASVS v4.0.3'
+  }
+};
+
+export function getLessonLabRequirement(lessonId: string): LessonLabRequirement {
+  const cleanId = lessonId.trim().split('-')[0];
+  return (
+    LESSON_LAB_POLICIES[cleanId] ?? {
+      lessonId: cleanId,
+      labId: null,
+      requirement: 'none',
+      isExecutable: false
+    }
+  );
+}
+
+export function isLabMandatoryForLesson(lessonId: string): boolean {
+  const policy = getLessonLabRequirement(lessonId);
+  return policy.requirement === 'mandatory' && policy.isExecutable;
+}
+
 export interface CurriculumBlockMeta {
   readonly id: CurriculumBlockId;
   readonly code: string;

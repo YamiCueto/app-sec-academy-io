@@ -1,7 +1,24 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { CURRICULUM_MODULES, TOTAL_CURRICULUM_LESSONS } from '../constants/curriculum.constants';
-import { LabRecord, LessonRecord, ModuleProgressSummary, UserProgressState } from '../../models/progress.model';
-import { StorageService } from '../services/storage/storage.service';
+import {
+  CURRICULUM_MODULES,
+  TOTAL_CURRICULUM_LESSONS,
+  isLabMandatoryForLesson,
+  getLessonLabRequirement
+} from '../constants/curriculum.constants';
+import {
+  AcademicProgressStatus,
+  LabRecord,
+  LessonRecord,
+  ModuleProgressSummary,
+  UserProgressState
+} from '../../models/progress.model';
+import { LessonSectionId } from '../../models/content.model';
+import {
+  StorageService,
+  isValidSectionId,
+  normalizeSectionId,
+  VALID_SECTION_IDS
+} from '../services/storage/storage.service';
 
 export function calculateCompletionPercentage(completed: number, total: number): number {
   if (total <= 0 || completed <= 0) {
@@ -45,6 +62,7 @@ export class ProgressStore {
   readonly labRecords = computed(() => this._state().labRecords);
   readonly lessonRecords = computed(() => this._state().lessonRecords);
   readonly lastActiveLessonId = computed(() => this._state().lastActiveLessonId ?? null);
+  readonly lastActiveSectionId = computed(() => this._state().lastActiveSectionId ?? null);
 
   readonly completedLabsCount = computed(() => {
     return Object.values(this._state().labRecords).filter((lab) => lab.passed).length;
@@ -68,9 +86,154 @@ export class ProgressStore {
       this.completedLessonsCount() === 0 &&
       this.completedLabsCount() === 0 &&
       this.completedQuizzesCount() === 0 &&
-      this.totalXP() === 0
+      this.totalXP() === 0 &&
+      !this._state().lastActiveLessonId
     );
   });
+
+  getLessonRecord(lessonId: string): LessonRecord | undefined {
+    if (!lessonId || typeof lessonId !== 'string') {
+      return undefined;
+    }
+    return this._state().lessonRecords[lessonId.trim()];
+  }
+
+  getLessonAcademicStatus(lessonId: string): AcademicProgressStatus {
+    if (!lessonId || typeof lessonId !== 'string') {
+      return 'not_started';
+    }
+    const cleanId = lessonId.trim();
+    const current = this._state();
+
+    if (current.completedLessons.includes(cleanId)) {
+      return 'completed';
+    }
+
+    const record = current.lessonRecords[cleanId];
+    if (!record || (!record.lastAccessedAt && (!record.visitedSections || record.visitedSections.length === 0))) {
+      return 'not_started';
+    }
+
+    const labMandatory = this.isLabRequiredForLesson(cleanId);
+
+    if (record.quizPassed) {
+      if (labMandatory) {
+        const labReq = getLessonLabRequirement(cleanId);
+        const labPassed = record.labPassed || (labReq.labId ? Boolean(current.labRecords[labReq.labId]?.passed) : false);
+        return labPassed ? 'completed' : 'lab_pending';
+      }
+      return 'completed';
+    }
+
+    const isReadingDone = Boolean(
+      record.readingCompleted || (record.visitedSections && record.visitedSections.length >= VALID_SECTION_IDS.length)
+    );
+
+    if (isReadingDone) {
+      if (record.quizAttempts > 0) {
+        return 'quiz_pending';
+      }
+      return 'reading_finished';
+    }
+
+    if (record.visitedSections && record.visitedSections.length > 0) {
+      return 'in_progress';
+    }
+
+    return 'not_started';
+  }
+
+  recordSectionVisit(lessonId: string, sectionId: LessonSectionId): void {
+    if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
+      return;
+    }
+    const cleanLessonId = lessonId.trim();
+    const cleanSectionId = normalizeSectionId(sectionId);
+    const current = this._state();
+    const previousRecord = current.lessonRecords[cleanLessonId];
+
+    const currentVisited = previousRecord?.visitedSections ?? ['introduccion'];
+    const alreadyVisited = currentVisited.includes(cleanSectionId);
+
+    if (
+      current.lastActiveLessonId === cleanLessonId &&
+      current.lastActiveSectionId === cleanSectionId &&
+      previousRecord?.lastSectionId === cleanSectionId &&
+      alreadyVisited
+    ) {
+      return;
+    }
+
+    const nextVisitedSet = new Set(currentVisited);
+    nextVisitedSet.add(cleanSectionId);
+    const updatedVisited = Array.from(nextVisitedSet);
+    const isAllVisited = updatedVisited.length >= VALID_SECTION_IDS.length;
+    const now = new Date().toISOString();
+
+    const baseRecord: LessonRecord = previousRecord ?? {
+      quizScore: 0,
+      quizAttempts: 0,
+      quizPassed: false,
+      labPassed: false,
+      labScore: 0,
+      hintsUsed: 0
+    };
+
+    const updatedRecord: LessonRecord = {
+      ...baseRecord,
+      lastSectionId: cleanSectionId,
+      visitedSections: updatedVisited,
+      readingCompleted: Boolean(baseRecord.readingCompleted || isAllVisited),
+      lastAccessedAt: now
+    };
+
+    const nextState: UserProgressState = {
+      ...current,
+      updatedAt: now,
+      lastActiveLessonId: cleanLessonId,
+      lastActiveSectionId: cleanSectionId,
+      lessonRecords: {
+        ...current.lessonRecords,
+        [cleanLessonId]: updatedRecord
+      }
+    };
+
+    this.persistAndSet(nextState);
+  }
+
+  resetLessonReading(lessonId: string): void {
+    if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
+      return;
+    }
+    const cleanLessonId = lessonId.trim();
+    const current = this._state();
+    const existing = current.lessonRecords[cleanLessonId];
+    if (!existing) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const updatedRecord: LessonRecord = {
+      ...existing,
+      lastSectionId: 'introduccion',
+      visitedSections: ['introduccion'],
+      readingCompleted: false,
+      lastAccessedAt: now
+    };
+
+    const nextState: UserProgressState = {
+      ...current,
+      updatedAt: now,
+      lastActiveLessonId: cleanLessonId,
+      lastActiveSectionId: 'introduccion',
+      lessonRecords: {
+        ...current.lessonRecords,
+        [cleanLessonId]: updatedRecord
+      }
+    };
+
+    this.persistAndSet(nextState);
+  }
 
   recordLessonCompletion(lessonId: string, earnedXP: number = 0): void {
     if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
@@ -98,75 +261,95 @@ export class ProgressStore {
     this.persistAndSet(nextState);
   }
 
-  setLastActiveLesson(lessonId: string): void {
+  setLastActiveLesson(lessonId: string, sectionId?: LessonSectionId): void {
     if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
       return;
     }
     const cleanId = lessonId.trim();
     const current = this._state();
-    if (current.lastActiveLessonId === cleanId) {
+    const currentLessonRecord = current.lessonRecords[cleanId];
+    const targetSection = sectionId
+      ? normalizeSectionId(sectionId)
+      : (currentLessonRecord?.lastSectionId ?? 'introduccion');
+
+    if (
+      current.lastActiveLessonId === cleanId &&
+      current.lastActiveSectionId === targetSection
+    ) {
       return;
     }
+
     const nextState: UserProgressState = {
       ...current,
       updatedAt: new Date().toISOString(),
-      lastActiveLessonId: cleanId
+      lastActiveLessonId: cleanId,
+      lastActiveSectionId: targetSection
     };
     this.persistAndSet(nextState);
   }
 
   recordQuizResult(lessonId: string, score: number, passed: boolean): void {
+    if (!lessonId || typeof lessonId !== 'string' || !lessonId.trim()) {
+      return;
+    }
+    const cleanId = lessonId.trim();
     const current = this._state();
     const now = new Date().toISOString();
-    const previousRecord = current.lessonRecords[lessonId];
+    const previousRecord = current.lessonRecords[cleanId];
     const previousPassed = previousRecord?.quizPassed ?? false;
     const previousAttempts = previousRecord?.quizAttempts ?? 0;
     const previousScore = previousRecord?.quizScore ?? 0;
 
-    const quizScore = Math.max(previousScore, score);
+    const quizScore = Math.max(previousScore, Math.max(0, Math.min(100, score)));
     const quizPassed = previousPassed || passed;
     const quizAttempts = previousAttempts + 1;
 
     const baseRecord: LessonRecord = previousRecord ?? {
-      completedAt: now,
       quizScore: 0,
       quizAttempts: 0,
       quizPassed: false,
       labPassed: false,
       labScore: 0,
-      hintsUsed: 0
-    };
-
-    const updatedRecord: LessonRecord = {
-      ...baseRecord,
-      completedAt: quizPassed ? now : baseRecord.completedAt,
-      quizScore,
-      quizAttempts,
-      quizPassed
+      hintsUsed: 0,
+      lastSectionId: 'evaluacion',
+      visitedSections: ['introduccion', 'evaluacion'],
+      readingCompleted: false
     };
 
     const isNewlyPassed = !previousPassed && passed;
     const bonusXP = isNewlyPassed ? 100 : 0;
 
-    const shouldCompleteLesson =
-      updatedRecord.quizPassed &&
-      (updatedRecord.labPassed || !this.isLabRequiredForLesson(lessonId));
+    const labMandatory = this.isLabRequiredForLesson(cleanId);
+    const labReq = getLessonLabRequirement(cleanId);
+    const labPassed = baseRecord.labPassed || (labReq.labId ? Boolean(current.labRecords[labReq.labId]?.passed) : false);
 
-    const alreadyCompleted = current.completedLessons.includes(lessonId);
+    const shouldCompleteLesson = quizPassed && (!labMandatory || labPassed);
+    const alreadyCompleted = current.completedLessons.includes(cleanId);
     const updatedLessons =
       shouldCompleteLesson && !alreadyCompleted
-        ? [...current.completedLessons, lessonId]
+        ? [...current.completedLessons, cleanId]
         : current.completedLessons;
+
+    const updatedRecord: LessonRecord = {
+      ...baseRecord,
+      completedAt: shouldCompleteLesson ? (baseRecord.completedAt || now) : baseRecord.completedAt,
+      lastAccessedAt: now,
+      quizScore,
+      quizAttempts,
+      quizPassed,
+      labPassed
+    };
 
     const nextState: UserProgressState = {
       ...current,
       updatedAt: now,
       totalXP: current.totalXP + bonusXP,
-      lastActiveLessonId: lessonId,
+      lastActiveLessonId: cleanId,
+      lastActiveSectionId: 'evaluacion',
       completedLessons: updatedLessons,
       lessonRecords: {
         ...current.lessonRecords,
-        [lessonId]: updatedRecord
+        [cleanId]: updatedRecord
       }
     };
 
@@ -180,21 +363,25 @@ export class ProgressStore {
     hintsUsed: number,
     lessonId?: string
   ): void {
+    if (!labId || typeof labId !== 'string' || !labId.trim()) {
+      return;
+    }
+    const cleanLabId = labId.trim();
     const current = this._state();
     const now = new Date().toISOString();
-    const previousLab = current.labRecords[labId];
+    const previousLab = current.labRecords[cleanLabId];
     const previousPassed = previousLab?.passed ?? false;
     const previousScore = previousLab?.score ?? 0;
 
-    const effectiveScore = Math.max(previousScore, score);
+    const effectiveScore = Math.max(previousScore, Math.max(0, score));
     const effectivePassed = previousPassed || passed;
 
     const updatedLab: LabRecord = {
-      labId,
+      labId: cleanLabId,
       passed: effectivePassed,
       score: effectiveScore,
-      hintsUsed,
-      completedAt: effectivePassed ? now : previousLab?.completedAt ?? now
+      hintsUsed: Math.max(0, hintsUsed),
+      completedAt: effectivePassed ? (previousLab?.completedAt || now) : (previousLab?.completedAt || now)
     };
 
     const isNewlyPassed = !previousPassed && passed;
@@ -203,44 +390,57 @@ export class ProgressStore {
     let updatedLessonRecords = current.lessonRecords;
     let updatedLessons = current.completedLessons;
 
-    if (lessonId) {
-      const prevLesson = current.lessonRecords[lessonId] ?? {
-        completedAt: now,
+    const targetLessonId = lessonId ? lessonId.trim() : this.findLessonIdForLab(cleanLabId);
+
+    if (targetLessonId) {
+      const prevLesson = current.lessonRecords[targetLessonId] ?? {
         quizScore: 0,
         quizAttempts: 0,
         quizPassed: false,
         labPassed: false,
         labScore: 0,
-        hintsUsed: 0
+        hintsUsed: 0,
+        lastSectionId: 'laboratorio',
+        visitedSections: ['introduccion', 'laboratorio'],
+        readingCompleted: false
       };
 
       const nextLesson: LessonRecord = {
         ...prevLesson,
         labPassed: effectivePassed,
         labScore: effectiveScore,
-        hintsUsed
+        hintsUsed: Math.max(prevLesson.hintsUsed, hintsUsed),
+        lastAccessedAt: now
+      };
+
+      const labMandatory = this.isLabRequiredForLesson(targetLessonId);
+      const shouldComplete = nextLesson.quizPassed && (!labMandatory || nextLesson.labPassed);
+
+      if (shouldComplete && !current.completedLessons.includes(targetLessonId)) {
+        updatedLessons = [...current.completedLessons, targetLessonId];
+      }
+
+      const finalizedLesson: LessonRecord = {
+        ...nextLesson,
+        completedAt: shouldComplete ? (nextLesson.completedAt || now) : nextLesson.completedAt
       };
 
       updatedLessonRecords = {
         ...current.lessonRecords,
-        [lessonId]: nextLesson
+        [targetLessonId]: finalizedLesson
       };
-
-      if (nextLesson.quizPassed && nextLesson.labPassed && !current.completedLessons.includes(lessonId)) {
-        updatedLessons = [...current.completedLessons, lessonId];
-      }
     }
 
     const nextState: UserProgressState = {
       ...current,
       updatedAt: now,
       totalXP: current.totalXP + bonusXP,
-      lastActiveLessonId: lessonId ?? current.lastActiveLessonId,
+      lastActiveLessonId: targetLessonId ?? current.lastActiveLessonId,
       completedLessons: updatedLessons,
       lessonRecords: updatedLessonRecords,
       labRecords: {
         ...current.labRecords,
-        [labId]: updatedLab
+        [cleanLabId]: updatedLab
       }
     };
 
@@ -330,6 +530,16 @@ export class ProgressStore {
   }
 
   private isLabRequiredForLesson(lessonId: string): boolean {
-    return lessonId === '1.2';
+    return isLabMandatoryForLesson(lessonId);
+  }
+
+  private findLessonIdForLab(labId: string): string | undefined {
+    const entry = Object.values(CURRICULUM_MODULES)
+      .flatMap((m) => m.lessonIds)
+      .find((lId) => {
+        const req = getLessonLabRequirement(lId);
+        return req.labId === labId;
+      });
+    return entry;
   }
 }

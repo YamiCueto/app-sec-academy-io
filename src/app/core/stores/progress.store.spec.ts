@@ -230,4 +230,112 @@ describe('ProgressStore', () => {
     store.recordQuizResult('1.1', 100, true);
     expect(store.totalXP()).toBe(200);
   });
+
+  it('4. Ultima seccion persistida: debe registrar la seccion consultada y recuperarla', () => {
+    store.recordSectionVisit('1.1', 'conceptos');
+    expect(store.lastActiveLessonId()).toBe('1.1');
+    expect(store.lastActiveSectionId()).toBe('conceptos');
+
+    const record = store.getLessonRecord('1.1');
+    expect(record).toBeDefined();
+    expect(record?.lastSectionId).toBe('conceptos');
+    expect(record?.visitedSections).toContain('conceptos');
+    expect(record?.visitedSections).toContain('introduccion');
+    expect(store.totalXP()).toBe(0);
+  });
+
+  it('5. Recuperacion tras recarga: debe reconstruir la posicion exacta desde almacenamiento', () => {
+    store.recordSectionVisit('1.2', 'ejemplos');
+
+    const freshTestBed = TestBed.resetTestingModule();
+    freshTestBed.configureTestingModule({
+      providers: [
+        ProgressStore,
+        StorageService,
+        { provide: STORAGE_DRIVER, useValue: mockDriver }
+      ]
+    });
+    const reloaded = freshTestBed.inject(ProgressStore);
+
+    expect(reloaded.lastActiveLessonId()).toBe('1.2');
+    expect(reloaded.lastActiveSectionId()).toBe('ejemplos');
+    const rec = reloaded.getLessonRecord('1.2');
+    expect(rec?.lastSectionId).toBe('ejemplos');
+  });
+
+  it('6. Seccion invalida: recordSectionVisit debe normalizar a introduccion si recibe seccion desconocida', () => {
+    store.recordSectionVisit('1.1', 'seccion-inexistente' as any);
+    expect(store.lastActiveSectionId()).toBe('introduccion');
+    const rec = store.getLessonRecord('1.1');
+    expect(rec?.lastSectionId).toBe('introduccion');
+  });
+
+  it('7. Leccion inexistente: getLessonAcademicStatus debe retornar not_started', () => {
+    expect(store.getLessonAcademicStatus('99.99')).toBe('not_started');
+    expect(store.getLessonRecord('99.99')).toBeUndefined();
+  });
+
+  it('12. XP idempotente: navegar entre secciones o reiniciar no debe otorgar XP', () => {
+    const initialXP = store.totalXP();
+    store.recordSectionVisit('1.1', 'objetivos');
+    store.recordSectionVisit('1.1', 'conceptos');
+    store.recordSectionVisit('1.1', 'ejemplos');
+    expect(store.totalXP()).toBe(initialXP);
+
+    store.resetLessonReading('1.1');
+    expect(store.totalXP()).toBe(initialXP);
+  });
+
+  it('13. Cuestionario aprobado: debe otorgar 100 XP base y registrar quizPassed', () => {
+    store.recordQuizResult('1.1', 85, true);
+    expect(store.totalXP()).toBe(100);
+    const rec = store.getLessonRecord('1.1');
+    expect(rec?.quizPassed).toBe(true);
+    expect(rec?.quizScore).toBe(85);
+    expect(rec?.quizAttempts).toBe(1);
+  });
+
+  it('14. Cuestionario reprobado: debe registrar calificacion sin otorgar XP ni completar leccion', () => {
+    store.recordQuizResult('1.1', 60, false);
+    expect(store.totalXP()).toBe(0);
+    expect(store.completedLessons()).not.toContain('1.1');
+    const rec = store.getLessonRecord('1.1');
+    expect(rec?.quizPassed).toBe(false);
+    expect(rec?.quizScore).toBe(60);
+    expect(rec?.quizAttempts).toBe(1);
+    expect(store.getLessonAcademicStatus('1.1')).toBe('in_progress');
+  });
+
+  it('15. Laboratorio obligatorio pendiente: para 1.2 quiz aprobado no completa hasta aprobar lab', () => {
+    store.recordQuizResult('1.2', 100, true);
+    expect(store.completedLessons()).not.toContain('1.2');
+    expect(store.getLessonAcademicStatus('1.2')).toBe('lab_pending');
+  });
+
+  it('16. Laboratorio obligatorio aprobado: para 1.2 quiz + lab aprobado completa la leccion', () => {
+    store.recordQuizResult('1.2', 100, true);
+    store.recordLabResult('LAB-BAC-01', true, 200, 0, '1.2');
+
+    expect(store.completedLessons()).toContain('1.2');
+    expect(store.getLessonAcademicStatus('1.2')).toBe('completed');
+    expect(store.totalXP()).toBe(300);
+  });
+
+  it('17. Leccion sin laboratorio: para 1.1 aprobar quiz completa la leccion inmediatamente', () => {
+    store.recordQuizResult('1.1', 90, true);
+    expect(store.completedLessons()).toContain('1.1');
+    expect(store.getLessonAcademicStatus('1.1')).toBe('completed');
+    expect(store.totalXP()).toBe(100);
+  });
+
+  it('19. Navegacion entre lecciones: cambiar de leccion no altera la completitud academica', () => {
+    store.recordQuizResult('1.1', 100, true);
+    expect(store.completedLessons()).toEqual(['1.1']);
+
+    store.recordSectionVisit('1.3', 'conceptos');
+    store.recordSectionVisit('1.4', 'objetivos');
+
+    expect(store.completedLessons()).toEqual(['1.1']);
+    expect(store.totalXP()).toBe(100);
+  });
 });

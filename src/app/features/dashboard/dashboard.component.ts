@@ -2,6 +2,8 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProgressStore } from '../../core/stores/progress.store';
 import { ContentService } from '../../core/services/content/content.service';
+import { LESSON_SECTIONS_CATALOG } from '../../models/content.model';
+import { AcademicProgressStatus } from '../../models/progress.model';
 
 export interface ContinueLearningStep {
   readonly state: 'not_started' | 'in_progress' | 'next_available' | 'all_completed';
@@ -13,6 +15,10 @@ export interface ContinueLearningStep {
   readonly description: string;
   readonly actionLabel: string;
   readonly actionRoute: string | readonly string[];
+  readonly academicStatus?: AcademicProgressStatus;
+  readonly currentSectionTitle?: string;
+  readonly readingProgressDetail?: string;
+  readonly pendingRequirementNotice?: string;
 }
 
 @Component({
@@ -26,6 +32,8 @@ export class DashboardComponent {
   protected readonly progressStore = inject(ProgressStore);
 
   private readonly availableM01Lessons: readonly string[] = ['1.1', '1.2', '1.3', '1.4'];
+  protected readonly m01Progress = computed(() => this.progressStore.getModuleProgress('m01'));
+  protected readonly totalPlannedLessons = 49;
 
   protected readonly continueStep = computed<ContinueLearningStep>(() => {
     const completed = this.progressStore.completedLessons();
@@ -42,23 +50,57 @@ export class DashboardComponent {
         heading: '¡Felicitaciones! Has completado todas las lecciones del Módulo 01',
         description: 'Has superado los cuatro temas y evaluaciones de Fundamentos OWASP. Puedes repasar los laboratorios o explorar el catálogo curricular.',
         actionLabel: 'Explorar Catálogo Curricular →',
-        actionRoute: '/curriculum'
+        actionRoute: '/curriculum',
+        academicStatus: 'completed'
       };
     }
 
     if (lastActive && this.availableM01Lessons.includes(lastActive) && !completed.includes(lastActive)) {
       const lessonDetail = this.contentService.getLessonSync(lastActive);
       const title = lessonDetail?.title ?? `Lección ${lastActive}`;
+      const academicStatus = this.progressStore.getLessonAcademicStatus(lastActive);
+      const record = this.progressStore.getLessonRecord(lastActive);
+      const lastSection = record?.lastSectionId ?? 'introduccion';
+      const sectionMeta = LESSON_SECTIONS_CATALOG.find((s) => s.id === lastSection);
+      const sectionName = sectionMeta?.shortTitle ?? 'Introducción';
+      const visitedCount = record?.visitedSections?.length ?? 1;
+      const readingDetail = `Lectura: ${visitedCount} de 9 secciones consultadas`;
+
+      let badgeText = 'Lección en Curso';
+      let heading = `Reanudar Lección ${lastActive}`;
+      let description = `Continúa tu avance en "${title}".`;
+      let actionLabel = `Reanudar Lección ${lastActive} →`;
+      let actionRoute: string | readonly string[] = ['/leccion', lastActive];
+      let pendingNotice: string | undefined = undefined;
+
+      if (academicStatus === 'lab_pending') {
+        pendingNotice = 'Laboratorio obligatorio LAB-BAC-01 pendiente de aprobación';
+        description = `Cuestionario superado. Para completar la Lección ${lastActive} debes superar las aserciones del sandbox de seguridad.`;
+        actionLabel = `Ir a Laboratorio LAB-BAC-01 →`;
+        actionRoute = ['/laboratorio', 'LAB-BAC-01'];
+      } else if (academicStatus === 'quiz_pending' || academicStatus === 'reading_finished') {
+        pendingNotice = 'Evaluación formativa pendiente (umbral mínimo: 80%)';
+        description = `Has concluido la lectura de las secciones. El siguiente paso pedagógico es aprobar la evaluación formativa.`;
+        actionLabel = `Reanudar Lección ${lastActive} →`;
+      } else {
+        description = `Continúa tu avance en "${title}" (Sección actual: ${sectionMeta?.title ?? sectionName}).`;
+        actionLabel = `Reanudar Lección ${lastActive} →`;
+      }
+
       return {
         state: 'in_progress',
         lessonId: lastActive,
         lessonTitle: title,
         moduleCode: 'M01',
-        badgeText: 'Lección en Curso',
-        heading: `Reanudar Lección ${lastActive}`,
-        description: `Continúa tu avance en "${title}".`,
-        actionLabel: `Reanudar Lección ${lastActive} →`,
-        actionRoute: ['/leccion', lastActive]
+        badgeText,
+        heading,
+        description,
+        actionLabel,
+        actionRoute,
+        academicStatus,
+        currentSectionTitle: sectionMeta?.title,
+        readingProgressDetail: readingDetail,
+        pendingRequirementNotice: pendingNotice
       };
     }
 
@@ -76,7 +118,8 @@ export class DashboardComponent {
           heading: `Continuar con Lección ${nextId}`,
           description: `Tu siguiente lección recomendada es: "${title}".`,
           actionLabel: `Iniciar Lección ${nextId} →`,
-          actionRoute: ['/leccion', nextId]
+          actionRoute: ['/leccion', nextId],
+          academicStatus: 'not_started'
         };
       }
     }
@@ -92,7 +135,8 @@ export class DashboardComponent {
       heading: 'Iniciar Módulo 01: Fundamentos OWASP',
       description: `Comienza tu especialización técnica con la Lección 1.1: "${firstTitle}".`,
       actionLabel: 'Iniciar Lección 1.1 →',
-      actionRoute: ['/leccion', '1.1']
+      actionRoute: ['/leccion', '1.1'],
+      academicStatus: 'not_started'
     };
   });
 

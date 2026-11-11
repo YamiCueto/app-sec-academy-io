@@ -60,6 +60,12 @@
     color: var(--sec-critical);
     border: 1px solid var(--sec-critical);
   }
+
+  .best-score-chip {
+    margin-left: var(--space-2);
+    font-size: var(--text-xs);
+    opacity: 0.85;
+  }
 }
 
 .questions-list {
@@ -186,6 +192,27 @@
   font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: 1.5;
+  margin: 0;
+}
+
+.review-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: var(--space-1) 0 0 0;
+  font-style: italic;
+}
+
+.retry-feedback-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.retry-instruction {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   margin: 0;
 }
 

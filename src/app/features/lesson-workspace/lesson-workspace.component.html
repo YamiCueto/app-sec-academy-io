@@ -98,12 +98,34 @@
               </li>
             }
           </ul>
+          <div class="sidebar-footer-actions">
+            <button
+              type="button"
+              class="sidebar-restart-btn"
+              (click)="resetReadingToBeginning()"
+              aria-label="Reiniciar lectura desde la primera sección"
+            >
+              ↺ Reiniciar al inicio
+            </button>
+          </div>
         </aside>
 
         <main class="active-section-panel" role="main" [attr.aria-label]="currentSectionMeta().title">
           <div class="section-card">
             <header class="section-card-header">
-              <span class="section-number">Sección {{ currentSectionIndex() + 1 }} de 9</span>
+              <div class="section-header-top-bar">
+                <span class="section-number">Sección {{ currentSectionIndex() + 1 }} de 9</span>
+                @if (currentSectionIndex() > 0) {
+                  <button
+                    type="button"
+                    class="restart-header-btn"
+                    (click)="resetReadingToBeginning()"
+                    aria-label="Reiniciar lectura desde la primera sección"
+                  >
+                    ↺ Reiniciar al inicio
+                  </button>
+                }
+              </div>
               <h2 class="section-heading">{{ currentSectionMeta().title }}</h2>
             </header>
 
@@ -334,18 +356,37 @@
                   Siguiente Sección →
                 </button>
               } @else {
-                <button
-                  type="button"
-                  class="btn btn-success complete-lesson-btn"
-                  (click)="markLessonAsCompleted()"
-                  [disabled]="isLessonDoneInStore()"
-                >
-                  @if (isLessonDoneInStore()) {
-                    ✓ Lección Completada en Perfil
-                  } @else {
-                    Finalizar y Registrar Lección (+100 XP)
+                <div class="last-section-status-container">
+                  @if (academicStatus() === 'lab_pending') {
+                    <div class="lab-requirement-banner" role="status">
+                      <span class="banner-icon">🧪</span>
+                      <span class="banner-text">Laboratorio <code>LAB-BAC-01</code> obligatorio pendiente.</span>
+                      <a [routerLink]="['/laboratorio', 'LAB-BAC-01']" class="btn btn-primary lab-action-link">
+                        Ir al Laboratorio →
+                      </a>
+                    </div>
+                  } @else if (academicStatus() === 'quiz_pending' || academicStatus() === 'reading_finished') {
+                    <div class="quiz-requirement-banner" role="status">
+                      <span class="banner-icon">📝</span>
+                      <span class="banner-text">Lectura terminada. Supera el cuestionario formativo (80%) para acreditar.</span>
+                      <button type="button" class="btn btn-primary quiz-action-btn" (click)="goToSection('evaluacion')">
+                        Ir a Evaluación →
+                      </button>
+                    </div>
                   }
-                </button>
+                  <button
+                    type="button"
+                    class="btn btn-success complete-lesson-btn"
+                    (click)="markLessonAsCompleted()"
+                    [disabled]="isLessonDoneInStore()"
+                  >
+                    @if (isLessonDoneInStore()) {
+                      ✓ Lección Completada en Perfil
+                    } @else {
+                      Finalizar y Registrar Lección (+100 XP)
+                    }
+                  </button>
+                </div>
               }
             </footer>
 

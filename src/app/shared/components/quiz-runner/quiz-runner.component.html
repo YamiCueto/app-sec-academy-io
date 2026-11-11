@@ -7,6 +7,9 @@
     @if (isSubmitted()) {
       <div class="score-pill" [class.passed]="isPassed()" [class.failed]="!isPassed()">
         Puntuación: {{ score() }}% ({{ isPassed() ? 'Aprobada' : 'No superada' }})
+        @if (bestScore() > 0) {
+          <span class="best-score-chip">Mejor: {{ bestScore() }}%</span>
+        }
       </div>
     }
   </div>
@@ -48,6 +51,11 @@
                 {{ chosen.isCorrect ? '✓ Respuesta Correcta' : '✗ Justificación de Falla' }}
               </span>
               <p class="feedback-text">{{ chosen.feedback }}</p>
+              @if (!chosen.isCorrect) {
+                <p class="review-hint">
+                  Consejo pedagógico: Repasa los fundamentos conceptuales y los ejemplos de código seguro de esta lección para afianzar este principio.
+                </p>
+              }
             </div>
           }
         }
@@ -67,13 +75,18 @@
       </button>
     } @else {
       @if (!isPassed()) {
-        <button
-          type="button"
-          class="btn btn-secondary retry-btn"
-          (click)="retryQuiz()"
-        >
-          Reintentar con Opciones Barajadas
-        </button>
+        <div class="retry-feedback-box" role="alert">
+          <p class="retry-instruction">
+            No has alcanzado el umbral del 80%. Te recomendamos revisar las explicaciones y reintentar con las opciones barajadas.
+          </p>
+          <button
+            type="button"
+            class="btn btn-secondary retry-btn"
+            (click)="retryQuiz()"
+          >
+            Reintentar con Opciones Barajadas
+          </button>
+        </div>
       } @else {
         <div class="passed-alert" role="status">
           <span class="passed-icon">🎉</span>
