@@ -168,7 +168,9 @@ export class StorageService {
         }
       }
 
-      const isLegacyCompleted = Boolean(isCompleted && !hadObservedSections);
+      const isLegacyCompleted = typeof item['isLegacyCompleted'] === 'boolean'
+        ? item['isLegacyCompleted']
+        : Boolean(isCompleted && !hadObservedSections);
       const readingCompleted = typeof item['readingCompleted'] === 'boolean'
         ? item['readingCompleted']
         : Boolean(isCompleted || visitedSections.length >= VALID_SECTION_IDS.length);
